@@ -18,7 +18,6 @@ require (
 	github.com/baidubce/bce-qianfan-sdk/go/qianfan v0.0.15
 	github.com/bytedance/gg v1.0.0
 	github.com/bytedance/gopkg v0.1.2
-	github.com/bytedance/mockey v1.2.14
 	github.com/bytedance/sonic v1.13.2
 	github.com/cenk/backoff v2.2.1+incompatible
 	github.com/cloudwego/eino v0.3.27
@@ -74,7 +73,6 @@ require (
 	github.com/samber/lo v1.49.1
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/cast v1.7.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
@@ -95,12 +93,6 @@ require (
 	gorm.io/gorm v1.30.0
 	gorm.io/plugin/dbresolver v1.6.0
 	gorm.io/plugin/soft_delete v1.2.1
-)
-
-require (
-	github.com/gopherjs/gopherjs v1.17.2 // indirect
-	github.com/jtolds/gls v4.20.0+incompatible // indirect
-	github.com/smarty/assertions v1.16.0 // indirect
 )
 
 require (

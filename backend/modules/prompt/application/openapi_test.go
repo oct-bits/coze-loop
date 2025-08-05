@@ -214,6 +214,7 @@ func TestPromptOpenAPIApplicationImpl_BatchGetPromptByPromptKey(t *testing.T) {
 											Content: ptr.Of("You are a helpful assistant."),
 										},
 									},
+									VariableDefs: make([]*openapi.VariableDef, 0),
 								},
 								LlmConfig: &openapi.LLMConfig{
 									Temperature: ptr.Of(0.7),
@@ -237,6 +238,7 @@ func TestPromptOpenAPIApplicationImpl_BatchGetPromptByPromptKey(t *testing.T) {
 											Content: ptr.Of("You are a helpful assistant."),
 										},
 									},
+									VariableDefs: make([]*openapi.VariableDef, 0),
 								},
 								LlmConfig: &openapi.LLMConfig{
 									Temperature: ptr.Of(0.7),
@@ -413,6 +415,7 @@ func TestPromptOpenAPIApplicationImpl_BatchGetPromptByPromptKey(t *testing.T) {
 											Content: ptr.Of("You are a helpful assistant."),
 										},
 									},
+									VariableDefs: make([]*openapi.VariableDef, 0),
 								},
 								LlmConfig: &openapi.LLMConfig{
 									Temperature: ptr.Of(0.7),
@@ -436,6 +439,7 @@ func TestPromptOpenAPIApplicationImpl_BatchGetPromptByPromptKey(t *testing.T) {
 											Content: ptr.Of("You are a helpful assistant."),
 										},
 									},
+									VariableDefs: make([]*openapi.VariableDef, 0),
 								},
 								LlmConfig: &openapi.LLMConfig{
 									Temperature: ptr.Of(0.7),
@@ -458,6 +462,7 @@ func TestPromptOpenAPIApplicationImpl_BatchGetPromptByPromptKey(t *testing.T) {
 											Content: ptr.Of("You are a helpful assistant."),
 										},
 									},
+									VariableDefs: make([]*openapi.VariableDef, 0),
 								},
 								LlmConfig: &openapi.LLMConfig{
 									Temperature: ptr.Of(0.7),
