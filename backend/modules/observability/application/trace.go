@@ -232,6 +232,7 @@ func (t *TraceApplication) buildGetTraceSvcReq(req *trace.GetTraceRequest) *serv
 		TraceID:     req.GetTraceID(),
 		StartTime:   req.GetStartTime(),
 		EndTime:     req.GetEndTime(),
+		SpanIDs:     req.GetSpanIds(),
 	}
 	platformType := loop_span.PlatformType(req.GetPlatformType())
 	if req.PlatformType == nil {

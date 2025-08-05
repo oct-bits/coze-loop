@@ -45,6 +45,7 @@ struct GetTraceRequest {
     3: required i64 start_time (api.js_conv='true', go.tag='json:"start_time"', api.query="start_time") // ms
     4: required i64 end_time (api.js_conv='true', go.tag='json:"end_time"', api.query="end_time") // ms
     8: optional common.PlatformType platform_type (api.query="platform_type")
+    9: optional list<string> span_ids (api.query="span_ids")
 
     255: optional base.Base Base
 }

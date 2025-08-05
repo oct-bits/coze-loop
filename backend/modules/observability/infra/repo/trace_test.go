@@ -505,6 +505,58 @@ func TestTraceCkRepoImpl_GetTrace(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "get trace with span successfully",
+			fieldsGetter: func(ctrl *gomock.Controller) fields {
+				spansDaoMock := ckmock.NewMockISpansDao(ctrl)
+				spansDaoMock.EXPECT().Get(gomock.Any(), gomock.Any()).Return([]*model.ObservabilitySpan{
+					{
+						TraceID: "span1",
+						SpanID:  "span1",
+					},
+					{
+						TraceID: "span1",
+						SpanID:  "span1",
+					},
+				}, nil)
+				traceConfigMock := confmocks.NewMockITraceConfig(ctrl)
+				traceConfigMock.EXPECT().GetTenantConfig(gomock.Any()).Return(&config.TenantCfg{
+					TenantTables: map[string]map[loop_span.TTL]config.TableCfg{
+						"test": {
+							loop_span.TTL3d: {
+								SpanTable: "spans",
+							},
+						},
+					},
+				}, nil)
+				return fields{
+					spansDao:    spansDaoMock,
+					traceConfig: traceConfigMock,
+				}
+			},
+			args: args{
+				ctx: context.Background(),
+				req: &repo.GetTraceParam{
+					TraceID: "123",
+					Tenants: []string{"test"},
+					SpanIDs: []string{"span1"},
+				},
+			},
+			want: loop_span.SpanList{
+				{
+					TraceID:          "span1",
+					SpanID:           "span1",
+					TagsString:       map[string]string{},
+					TagsLong:         map[string]int64{},
+					TagsByte:         map[string]string{},
+					TagsDouble:       map[string]float64{},
+					TagsBool:         map[string]bool{},
+					SystemTagsString: map[string]string{},
+					SystemTagsLong:   map[string]int64{},
+					SystemTagsDouble: map[string]float64{},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -1771,6 +1771,7 @@ type GetTraceRequest struct {
 	// ms
 	EndTime      int64                `thrift:"end_time,4,required" frugal:"4,required,i64" json:"end_time" query:"end_time,required" `
 	PlatformType *common.PlatformType `thrift:"platform_type,8,optional" frugal:"8,optional,string" json:"platform_type,omitempty" query:"platform_type"`
+	SpanIds      []string             `thrift:"span_ids,9,optional" frugal:"9,optional,list<string>" json:"span_ids,omitempty" query:"span_ids"`
 	Base         *base.Base           `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
 }
 
@@ -1821,6 +1822,18 @@ func (p *GetTraceRequest) GetPlatformType() (v common.PlatformType) {
 	return *p.PlatformType
 }
 
+var GetTraceRequest_SpanIds_DEFAULT []string
+
+func (p *GetTraceRequest) GetSpanIds() (v []string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSpanIds() {
+		return GetTraceRequest_SpanIds_DEFAULT
+	}
+	return p.SpanIds
+}
+
 var GetTraceRequest_Base_DEFAULT *base.Base
 
 func (p *GetTraceRequest) GetBase() (v *base.Base) {
@@ -1847,6 +1860,9 @@ func (p *GetTraceRequest) SetEndTime(val int64) {
 func (p *GetTraceRequest) SetPlatformType(val *common.PlatformType) {
 	p.PlatformType = val
 }
+func (p *GetTraceRequest) SetSpanIds(val []string) {
+	p.SpanIds = val
+}
 func (p *GetTraceRequest) SetBase(val *base.Base) {
 	p.Base = val
 }
@@ -1857,11 +1873,16 @@ var fieldIDToName_GetTraceRequest = map[int16]string{
 	3:   "start_time",
 	4:   "end_time",
 	8:   "platform_type",
+	9:   "span_ids",
 	255: "Base",
 }
 
 func (p *GetTraceRequest) IsSetPlatformType() bool {
 	return p.PlatformType != nil
+}
+
+func (p *GetTraceRequest) IsSetSpanIds() bool {
+	return p.SpanIds != nil
 }
 
 func (p *GetTraceRequest) IsSetBase() bool {
@@ -1929,6 +1950,14 @@ func (p *GetTraceRequest) Read(iprot thrift.TProtocol) (err error) {
 		case 8:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField8(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 9:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField9(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -2047,6 +2076,29 @@ func (p *GetTraceRequest) ReadField8(iprot thrift.TProtocol) error {
 	p.PlatformType = _field
 	return nil
 }
+func (p *GetTraceRequest) ReadField9(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]string, 0, size)
+	for i := 0; i < size; i++ {
+
+		var _elem string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_elem = v
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.SpanIds = _field
+	return nil
+}
 func (p *GetTraceRequest) ReadField255(iprot thrift.TProtocol) error {
 	_field := base.NewBase()
 	if err := _field.Read(iprot); err != nil {
@@ -2080,6 +2132,10 @@ func (p *GetTraceRequest) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField8(oprot); err != nil {
 			fieldId = 8
+			goto WriteFieldError
+		}
+		if err = p.writeField9(oprot); err != nil {
+			fieldId = 9
 			goto WriteFieldError
 		}
 		if err = p.writeField255(oprot); err != nil {
@@ -2186,6 +2242,32 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 8 end error: ", p), err)
 }
+func (p *GetTraceRequest) writeField9(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSpanIds() {
+		if err = oprot.WriteFieldBegin("span_ids", thrift.LIST, 9); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRING, len(p.SpanIds)); err != nil {
+			return err
+		}
+		for _, v := range p.SpanIds {
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 9 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 9 end error: ", p), err)
+}
 func (p *GetTraceRequest) writeField255(oprot thrift.TProtocol) (err error) {
 	if p.IsSetBase() {
 		if err = oprot.WriteFieldBegin("Base", thrift.STRUCT, 255); err != nil {
@@ -2234,6 +2316,9 @@ func (p *GetTraceRequest) DeepEqual(ano *GetTraceRequest) bool {
 	if !p.Field8DeepEqual(ano.PlatformType) {
 		return false
 	}
+	if !p.Field9DeepEqual(ano.SpanIds) {
+		return false
+	}
 	if !p.Field255DeepEqual(ano.Base) {
 		return false
 	}
@@ -2277,6 +2362,19 @@ func (p *GetTraceRequest) Field8DeepEqual(src *common.PlatformType) bool {
 	}
 	if strings.Compare(*p.PlatformType, *src) != 0 {
 		return false
+	}
+	return true
+}
+func (p *GetTraceRequest) Field9DeepEqual(src []string) bool {
+
+	if len(p.SpanIds) != len(src) {
+		return false
+	}
+	for i, v := range p.SpanIds {
+		_src := src[i]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
 	}
 	return true
 }

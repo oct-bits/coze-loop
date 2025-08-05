@@ -1431,6 +1431,20 @@ func (p *GetTraceRequest) FastRead(buf []byte) (int, error) {
 					goto SkipFieldError
 				}
 			}
+		case 9:
+			if fieldTypeId == thrift.LIST {
+				l, err = p.FastReadField9(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
 		case 255:
 			if fieldTypeId == thrift.STRUCT {
 				l, err = p.FastReadField255(buf[offset:])
@@ -1554,6 +1568,30 @@ func (p *GetTraceRequest) FastReadField8(buf []byte) (int, error) {
 	return offset, nil
 }
 
+func (p *GetTraceRequest) FastReadField9(buf []byte) (int, error) {
+	offset := 0
+
+	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
+	offset += l
+	if err != nil {
+		return offset, err
+	}
+	_field := make([]string, 0, size)
+	for i := 0; i < size; i++ {
+		var _elem string
+		if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+			return offset, err
+		} else {
+			offset += l
+			_elem = v
+		}
+
+		_field = append(_field, _elem)
+	}
+	p.SpanIds = _field
+	return offset, nil
+}
+
 func (p *GetTraceRequest) FastReadField255(buf []byte) (int, error) {
 	offset := 0
 	_field := base.NewBase()
@@ -1578,6 +1616,7 @@ func (p *GetTraceRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int
 		offset += p.fastWriteField4(buf[offset:], w)
 		offset += p.fastWriteField2(buf[offset:], w)
 		offset += p.fastWriteField8(buf[offset:], w)
+		offset += p.fastWriteField9(buf[offset:], w)
 		offset += p.fastWriteField255(buf[offset:], w)
 	}
 	offset += thrift.Binary.WriteFieldStop(buf[offset:])
@@ -1592,6 +1631,7 @@ func (p *GetTraceRequest) BLength() int {
 		l += p.field3Length()
 		l += p.field4Length()
 		l += p.field8Length()
+		l += p.field9Length()
 		l += p.field255Length()
 	}
 	l += thrift.Binary.FieldStopLength()
@@ -1631,6 +1671,22 @@ func (p *GetTraceRequest) fastWriteField8(buf []byte, w thrift.NocopyWriter) int
 	if p.IsSetPlatformType() {
 		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 8)
 		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.PlatformType)
+	}
+	return offset
+}
+
+func (p *GetTraceRequest) fastWriteField9(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetSpanIds() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 9)
+		listBeginOffset := offset
+		offset += thrift.Binary.ListBeginLength()
+		var length int
+		for _, v := range p.SpanIds {
+			length++
+			offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, v)
+		}
+		thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRING, length)
 	}
 	return offset
 }
@@ -1681,6 +1737,19 @@ func (p *GetTraceRequest) field8Length() int {
 	return l
 }
 
+func (p *GetTraceRequest) field9Length() int {
+	l := 0
+	if p.IsSetSpanIds() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.ListBeginLength()
+		for _, v := range p.SpanIds {
+			_ = v
+			l += thrift.Binary.StringLengthNocopy(v)
+		}
+	}
+	return l
+}
+
 func (p *GetTraceRequest) field255Length() int {
 	l := 0
 	if p.IsSetBase() {
@@ -1709,6 +1778,17 @@ func (p *GetTraceRequest) DeepCopy(s interface{}) error {
 	if src.PlatformType != nil {
 		tmp := *src.PlatformType
 		p.PlatformType = &tmp
+	}
+
+	if src.SpanIds != nil {
+		p.SpanIds = make([]string, 0, len(src.SpanIds))
+		for _, elem := range src.SpanIds {
+			var _elem string
+			if elem != "" {
+				_elem = kutils.StringDeepCopy(elem)
+			}
+			p.SpanIds = append(p.SpanIds, _elem)
+		}
 	}
 
 	var _base *base.Base

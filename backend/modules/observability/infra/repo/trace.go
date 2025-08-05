@@ -136,16 +136,24 @@ func (t *TraceCkRepoImpl) GetTrace(ctx context.Context, req *repo.GetTraceParam)
 	if err != nil {
 		return nil, err
 	}
+	var filterFields []*loop_span.FilterField
+	filterFields = append(filterFields, &loop_span.FilterField{
+		FieldName: loop_span.SpanFieldTraceId,
+		FieldType: loop_span.FieldTypeString,
+		Values:    []string{req.TraceID},
+		QueryType: ptr.Of(loop_span.QueryTypeEnumEq),
+	})
+	if len(req.SpanIDs) > 0 {
+		filterFields = append(filterFields, &loop_span.FilterField{
+			FieldName: loop_span.SpanFieldSpanId,
+			FieldType: loop_span.FieldTypeString,
+			Values:    req.SpanIDs,
+			QueryType: ptr.Of(loop_span.QueryTypeEnumIn),
+		})
+	}
 	filter := &loop_span.FilterFields{
-		QueryAndOr: ptr.Of(loop_span.QueryAndOrEnumAnd),
-		FilterFields: []*loop_span.FilterField{
-			{
-				FieldName: loop_span.SpanFieldTraceId,
-				FieldType: loop_span.FieldTypeString,
-				Values:    []string{req.TraceID},
-				QueryType: ptr.Of(loop_span.QueryTypeEnumEq),
-			},
-		},
+		QueryAndOr:   ptr.Of(loop_span.QueryAndOrEnumAnd),
+		FilterFields: filterFields,
 	}
 	st := time.Now()
 	spans, err := t.spansDao.Get(ctx, &ck.QueryParam{

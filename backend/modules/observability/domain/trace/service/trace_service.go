@@ -52,6 +52,7 @@ type GetTraceReq struct {
 	StartTime    int64 // ms
 	EndTime      int64 // ms
 	PlatformType loop_span.PlatformType
+	SpanIDs      []string
 }
 
 type GetTraceResp struct {
@@ -211,6 +212,7 @@ func (r *TraceServiceImpl) GetTrace(ctx context.Context, req *GetTraceReq) (*Get
 		StartAt: req.StartTime,
 		EndAt:   req.EndTime,
 		Limit:   1000,
+		SpanIDs: req.SpanIDs,
 	})
 	r.metrics.EmitGetTrace(req.WorkspaceID, st, err != nil)
 	if err != nil {

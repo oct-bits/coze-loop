@@ -16,6 +16,7 @@ type GetTraceParam struct {
 	EndAt              int64 // ms
 	Limit              int32
 	NotQueryAnnotation bool
+	SpanIDs            []string
 }
 
 type ListSpansParam struct {
