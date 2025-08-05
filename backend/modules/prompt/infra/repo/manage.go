@@ -402,8 +402,9 @@ func (d *ManageRepoImpl) ListPrompt(ctx context.Context, param repo.ListPromptPa
 	listBasicParam := mysql.ListPromptBasicParam{
 		SpaceID: param.SpaceID,
 
-		KeyWord:    param.KeyWord,
-		CreatedBys: param.CreatedBys,
+		KeyWord:       param.KeyWord,
+		CreatedBys:    param.CreatedBys,
+		CommittedOnly: param.CommittedOnly,
 
 		Offset:  (param.PageNum - 1) * param.PageSize,
 		Limit:   param.PageSize,
