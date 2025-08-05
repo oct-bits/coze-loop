@@ -987,3 +987,13 @@ func _deletepromptMw(handler *apis.APIHandler) []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _batchgetsourceevaltargetMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _batchgetsourceevaltargetsMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}

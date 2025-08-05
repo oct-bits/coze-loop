@@ -88,6 +88,7 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 				_v11.POST("/eval_targets", append(_eval_targetsMw(handler), apis.CreateEvalTarget)...)
 				_eval_targets := _v11.Group("/eval_targets", _eval_targetsMw(handler)...)
 				_eval_targets.POST("/batch_get_by_source", append(_batchgetevaltargetsbysourceMw(handler), apis.BatchGetEvalTargetsBySource)...)
+				_eval_targets.POST("/batch_get_source", append(_batchgetsourceevaltargetsMw(handler), apis.BatchGetSourceEvalTargets)...)
 				_eval_targets.POST("/list_source", append(_listsourceevaltargetsMw(handler), apis.ListSourceEvalTargets)...)
 				_eval_targets.POST("/list_source_version", append(_listsourceevaltargetversionsMw(handler), apis.ListSourceEvalTargetVersions)...)
 				{
@@ -154,9 +155,7 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 				}
 				{
 					_evaluator_records := _v11.Group("/evaluator_records", _evaluator_recordsMw(handler)...)
-					_evaluator_records.GET("/:evaluator_record_id", append(_getevaluatorrecordMw(handler), apis.GetEvaluatorRecord)...)
 					_evaluator_records.PATCH("/:evaluator_record_id", append(_updateevaluatorrecordMw(handler), apis.UpdateEvaluatorRecord)...)
-					_evaluator_records.POST("/get_batch", append(_batchgetevaluatorrecordsMw(handler), apis.BatchGetEvaluatorRecords)...)
 				}
 				{
 					_evaluators0 := _v11.Group("/evaluators", _evaluators0Mw(handler)...)

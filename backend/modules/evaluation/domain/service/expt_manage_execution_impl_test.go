@@ -170,7 +170,7 @@ func TestExptMangerImpl_Run(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setup()
-			err := mgr.Run(ctx, tt.exptID, tt.runID, tt.spaceID, session, tt.runMode)
+			err := mgr.Run(ctx, tt.exptID, tt.runID, tt.spaceID, session, tt.runMode, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -252,7 +252,7 @@ func TestExptMangerImpl_RetryUnSuccess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setup()
-			err := mgr.RetryUnSuccess(ctx, tt.exptID, tt.runID, tt.spaceID, session)
+			err := mgr.RetryUnSuccess(ctx, tt.exptID, tt.runID, tt.spaceID, session, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RetryUnSuccess() error = %v, wantErr %v", err, tt.wantErr)
 			}

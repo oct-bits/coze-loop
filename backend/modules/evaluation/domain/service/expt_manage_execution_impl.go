@@ -158,20 +158,32 @@ func (e *ExptMangerImpl) CheckConnector(ctx context.Context, expt *entity.Experi
 	evalSetFieldSchema := gslice.ToMap(expt.EvalSet.EvaluationSetVersion.EvaluationSetSchema.FieldSchemas, func(t *entity.FieldSchema) (string, *entity.FieldSchema) { return t.Name, t })
 	if expt.Target.EvalTargetType != entity.EvalTargetTypeLoopTrace {
 		for _, fc := range connectorConf.TargetConf.IngressConf.EvalSetAdapter.FieldConfs {
-			if esf := evalSetFieldSchema[fc.FromField]; esf == nil {
+			firstField, err := json.GetFirstJSONPathField(fc.FromField)
+			if err != nil {
+				return errorx.WrapByCode(err, errno.ExperimentValidateFailCode, errorx.WithExtraMsg(fmt.Sprintf("invalid connector: target is expected to receive the missing evalset %v column, json parse error", fc.FromField)))
+			}
+			if esf := evalSetFieldSchema[firstField]; esf == nil {
 				return errorx.NewByCode(errno.ExperimentValidateFailCode, errorx.WithExtraMsg(fmt.Sprintf("invalid connector: target is expected to receive the missing evalset %v column", fc.FromField)))
 			}
 		}
 	}
 	for _, evaluatorConf := range connectorConf.EvaluatorsConf.EvaluatorConf {
 		for _, fc := range evaluatorConf.IngressConf.EvalSetAdapter.FieldConfs {
-			if fs := evalSetFieldSchema[fc.FromField]; fs == nil {
+			firstField, err := json.GetFirstJSONPathField(fc.FromField)
+			if err != nil {
+				return errorx.WrapByCode(err, errno.ExperimentValidateFailCode, errorx.WithExtraMsg(fmt.Sprintf("invalid connector: evaluator %v is expected to receive the missing evalset %v column, json parse error", evaluatorConf.EvaluatorVersionID, fc.FromField)))
+			}
+			if fs := evalSetFieldSchema[firstField]; fs == nil {
 				return errorx.NewByCode(errno.ExperimentValidateFailCode, errorx.WithExtraMsg(fmt.Sprintf("invalid connector: evaluator %v is expected to receive the missing evalset %v column", evaluatorConf.EvaluatorVersionID, fc.FromField)))
 			}
 		}
 		if expt.Target.EvalTargetType != entity.EvalTargetTypeLoopTrace {
 			for _, fc := range evaluatorConf.IngressConf.TargetAdapter.FieldConfs {
-				if s := targetOutputSchema[fc.FromField]; s == nil {
+				firstField, err := json.GetFirstJSONPathField(fc.FromField)
+				if err != nil {
+					return errorx.WrapByCode(err, errno.ExperimentValidateFailCode, errorx.WithExtraMsg(fmt.Sprintf("invalid connector: evaluator %v is expected to receive the missing target %v column, json parse error", evaluatorConf.EvaluatorVersionID, fc.FromField)))
+				}
+				if s := targetOutputSchema[firstField]; s == nil {
 					return errorx.NewByCode(errno.ExperimentValidateFailCode, errorx.WithExtraMsg(fmt.Sprintf("invalid connector: evaluator %v is expected to receive the missing target %v field", evaluatorConf.EvaluatorVersionID, fc.FromField)))
 				}
 			}
@@ -216,7 +228,7 @@ func (e *ExptMangerImpl) CheckBenefit(ctx context.Context, expt *entity.Experime
 	return nil
 }
 
-func (e *ExptMangerImpl) Run(ctx context.Context, exptID, runID, spaceID int64, session *entity.Session, runMode entity.ExptRunMode) error {
+func (e *ExptMangerImpl) Run(ctx context.Context, exptID, runID, spaceID int64, session *entity.Session, runMode entity.ExptRunMode, ext map[string]string) error {
 	if err := NewQuotaService(e.quotaRepo, e.configer).AllowExptRun(ctx, exptID, spaceID, session); err != nil {
 		return err
 	}
@@ -228,6 +240,7 @@ func (e *ExptMangerImpl) Run(ctx context.Context, exptID, runID, spaceID int64, 
 		ExptRunMode: runMode,
 		CreatedAt:   time.Now().Unix(),
 		Session:     session,
+		Ext:         ext,
 	}, gptr.Of(time.Second*3)); err != nil {
 		return err
 	}
@@ -235,7 +248,7 @@ func (e *ExptMangerImpl) Run(ctx context.Context, exptID, runID, spaceID int64, 
 	return nil
 }
 
-func (e *ExptMangerImpl) RetryUnSuccess(ctx context.Context, exptID, runID, spaceID int64, session *entity.Session) error {
+func (e *ExptMangerImpl) RetryUnSuccess(ctx context.Context, exptID, runID, spaceID int64, session *entity.Session, ext map[string]string) error {
 	if err := NewQuotaService(e.quotaRepo, e.configer).AllowExptRun(ctx, exptID, spaceID, session); err != nil {
 		return err
 	}
@@ -247,6 +260,7 @@ func (e *ExptMangerImpl) RetryUnSuccess(ctx context.Context, exptID, runID, spac
 		ExptRunMode: entity.EvaluationModeFailRetry,
 		CreatedAt:   time.Now().Unix(),
 		Session:     session,
+		Ext:         ext,
 	}, gptr.Of(time.Second*3)); err != nil {
 		return err
 	}

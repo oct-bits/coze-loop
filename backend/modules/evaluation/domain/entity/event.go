@@ -8,6 +8,7 @@ type ExptScheduleEvent struct {
 	ExptID      int64
 	ExptRunID   int64
 	ExptRunMode ExptRunMode
+	ExptType    ExptType
 
 	CreatedAt int64
 	Ext       map[string]string

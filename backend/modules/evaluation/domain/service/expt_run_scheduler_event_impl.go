@@ -240,7 +240,7 @@ func (e *ExptSchedulerImpl) schedule(ctx context.Context, event *entity.ExptSche
 
 	e.handleZombies(ctx, event, incomplete)
 
-	if err = e.recordEvalItemRunLogs(ctx, event, complete); err != nil {
+	if err = e.recordEvalItemRunLogs(ctx, event, complete, mode); err != nil {
 		return err
 	}
 
@@ -263,17 +263,24 @@ func (e *ExptSchedulerImpl) schedule(ctx context.Context, event *entity.ExptSche
 	return mode.NextTick(ctx, event, nextTick)
 }
 
-func (e *ExptSchedulerImpl) recordEvalItemRunLogs(ctx context.Context, event *entity.ExptScheduleEvent, completeItems []*entity.ExptEvalItem) error {
+func (e *ExptSchedulerImpl) recordEvalItemRunLogs(ctx context.Context, event *entity.ExptScheduleEvent, completeItems []*entity.ExptEvalItem, mode entity.ExptSchedulerMode) error {
 	for _, item := range completeItems {
 		if item.State != entity.ItemRunState_Fail && item.State != entity.ItemRunState_Success {
 			return fmt.Errorf("recordEvalItemRunLogs found invalid item run state: %v", item.State)
 		}
+		var turnEvaluatorRefs []*entity.ExptTurnEvaluatorResultRef
 		if err := backoff.RetryFiveMin(ctx, func() error {
-			return e.ResultSvc.RecordItemRunLogs(ctx, event.ExptID, event.ExptRunID, item.ItemID, event.SpaceID, event.Session)
+			var err error
+			turnEvaluatorRefs, err = e.ResultSvc.RecordItemRunLogs(ctx, event.ExptID, event.ExptRunID, item.ItemID, event.SpaceID)
+			return err
 		}); err != nil {
 			return err
 		}
 		time.Sleep(time.Millisecond * 50)
+		err := mode.PublishResult(ctx, turnEvaluatorRefs, event)
+		if err != nil {
+			logs.CtxError(ctx, "publish online result fail, err: %v", err)
+		}
 	}
 	return nil
 }

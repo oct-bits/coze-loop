@@ -193,7 +193,6 @@ func (e *ExptItemEvalCtxExecutor) buildExptTurnEvalCtx(ctx context.Context, turn
 			Turn:              turn,
 			ExptTurnRunResult: &entity.ExptTurnRunResult{},
 			// History:           history,
-			Ext: eiec.Event.Ext,
 		}
 	)
 	etec.Ext = make(map[string]string)
@@ -205,6 +204,9 @@ func (e *ExptItemEvalCtxExecutor) buildExptTurnEvalCtx(ctx context.Context, turn
 	etec.Ext["task_id"] = eiec.Expt.SourceID
 	etec.Ext["workspace_id"] = strconv.FormatInt(eiec.Expt.SpaceID, 10)
 	etec.Ext["start_time"] = strconv.FormatInt(gptr.Indirect(eiec.EvalSetItem.BaseInfo.CreatedAt)*1000, 10) // 存储是毫秒，需要存入微妙
+	for k, v := range eiec.Event.Ext {
+		etec.Ext[k] = v
+	}
 	if existTurnRunResult == nil {
 		return etec, nil
 	}

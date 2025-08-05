@@ -60,6 +60,8 @@ struct SubmitExperimentRequest {
     32: optional expt.SourceType source_type (api.body = 'source_type')
     33: optional string source_id (api.body = 'source_id')
 
+    100: optional map<string, string> ext (api.body = 'ext')
+
     200: optional common.Session session
 
     255: optional base.Base Base
@@ -146,6 +148,8 @@ struct RunExperimentRequest {
     3: optional list<i64> item_ids (api.body = 'item_ids', api.js_conv = 'true', go.tag = 'json:"item_ids"')
     10: optional expt.ExptType expt_type (api.body = 'expt_type')
 
+    100: optional map<string, string> ext (api.body = 'ext')
+
     200: optional common.Session session
 
     255: optional base.Base Base
@@ -162,6 +166,8 @@ struct RetryExperimentRequest {
     2: optional i64 workspace_id (api.body = 'workspace_id', api.js_conv = 'true', go.tag = 'json:"workspace_id"')
     3: optional i64 expt_id (api.path = 'expt_id', api.js_conv = 'true', go.tag = 'json:"expt_id"')
     4: optional list<i64> item_ids (api.body = 'item_ids', api.js_conv = 'true', go.tag = 'json:"item_ids"')
+
+    100: optional map<string, string> ext (api.body = 'ext')
 
     255: optional base.Base Base
 }

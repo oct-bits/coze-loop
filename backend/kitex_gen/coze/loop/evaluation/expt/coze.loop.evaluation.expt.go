@@ -1844,6 +1844,7 @@ type SubmitExperimentRequest struct {
 	MaxAliveTime          *int64                             `thrift:"max_alive_time,31,optional" frugal:"31,optional,i64" form:"max_alive_time" json:"max_alive_time,omitempty"`
 	SourceType            *expt.SourceType                   `thrift:"source_type,32,optional" frugal:"32,optional,SourceType" form:"source_type" json:"source_type,omitempty"`
 	SourceID              *string                            `thrift:"source_id,33,optional" frugal:"33,optional,string" form:"source_id" json:"source_id,omitempty"`
+	Ext                   map[string]string                  `thrift:"ext,100,optional" frugal:"100,optional,map<string:string>" form:"ext" json:"ext,omitempty"`
 	Session               *common.Session                    `thrift:"session,200,optional" frugal:"200,optional,common.Session" form:"session" json:"session,omitempty" query:"session"`
 	Base                  *base.Base                         `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
 }
@@ -2054,6 +2055,18 @@ func (p *SubmitExperimentRequest) GetSourceID() (v string) {
 	return *p.SourceID
 }
 
+var SubmitExperimentRequest_Ext_DEFAULT map[string]string
+
+func (p *SubmitExperimentRequest) GetExt() (v map[string]string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetExt() {
+		return SubmitExperimentRequest_Ext_DEFAULT
+	}
+	return p.Ext
+}
+
 var SubmitExperimentRequest_Session_DEFAULT *common.Session
 
 func (p *SubmitExperimentRequest) GetSession() (v *common.Session) {
@@ -2128,6 +2141,9 @@ func (p *SubmitExperimentRequest) SetSourceType(val *expt.SourceType) {
 func (p *SubmitExperimentRequest) SetSourceID(val *string) {
 	p.SourceID = val
 }
+func (p *SubmitExperimentRequest) SetExt(val map[string]string) {
+	p.Ext = val
+}
 func (p *SubmitExperimentRequest) SetSession(val *common.Session) {
 	p.Session = val
 }
@@ -2153,6 +2169,7 @@ var fieldIDToName_SubmitExperimentRequest = map[int16]string{
 	31:  "max_alive_time",
 	32:  "source_type",
 	33:  "source_id",
+	100: "ext",
 	200: "session",
 	255: "Base",
 }
@@ -2219,6 +2236,10 @@ func (p *SubmitExperimentRequest) IsSetSourceType() bool {
 
 func (p *SubmitExperimentRequest) IsSetSourceID() bool {
 	return p.SourceID != nil
+}
+
+func (p *SubmitExperimentRequest) IsSetExt() bool {
+	return p.Ext != nil
 }
 
 func (p *SubmitExperimentRequest) IsSetSession() bool {
@@ -2380,6 +2401,14 @@ func (p *SubmitExperimentRequest) Read(iprot thrift.TProtocol) (err error) {
 		case 33:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField33(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 100:
+			if fieldTypeId == thrift.MAP {
+				if err = p.ReadField100(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -2643,6 +2672,35 @@ func (p *SubmitExperimentRequest) ReadField33(iprot thrift.TProtocol) error {
 	p.SourceID = _field
 	return nil
 }
+func (p *SubmitExperimentRequest) ReadField100(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return err
+	}
+	_field := make(map[string]string, size)
+	for i := 0; i < size; i++ {
+		var _key string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_key = v
+		}
+
+		var _val string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_val = v
+		}
+
+		_field[_key] = _val
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return err
+	}
+	p.Ext = _field
+	return nil
+}
 func (p *SubmitExperimentRequest) ReadField200(iprot thrift.TProtocol) error {
 	_field := common.NewSession()
 	if err := _field.Read(iprot); err != nil {
@@ -2732,6 +2790,10 @@ func (p *SubmitExperimentRequest) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField33(oprot); err != nil {
 			fieldId = 33
+			goto WriteFieldError
+		}
+		if err = p.writeField100(oprot); err != nil {
+			fieldId = 100
 			goto WriteFieldError
 		}
 		if err = p.writeField200(oprot); err != nil {
@@ -3080,6 +3142,35 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 33 end error: ", p), err)
 }
+func (p *SubmitExperimentRequest) writeField100(oprot thrift.TProtocol) (err error) {
+	if p.IsSetExt() {
+		if err = oprot.WriteFieldBegin("ext", thrift.MAP, 100); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteMapBegin(thrift.STRING, thrift.STRING, len(p.Ext)); err != nil {
+			return err
+		}
+		for k, v := range p.Ext {
+			if err := oprot.WriteString(k); err != nil {
+				return err
+			}
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteMapEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 100 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 100 end error: ", p), err)
+}
 func (p *SubmitExperimentRequest) writeField200(oprot thrift.TProtocol) (err error) {
 	if p.IsSetSession() {
 		if err = oprot.WriteFieldBegin("session", thrift.STRUCT, 200); err != nil {
@@ -3180,6 +3271,9 @@ func (p *SubmitExperimentRequest) DeepEqual(ano *SubmitExperimentRequest) bool {
 		return false
 	}
 	if !p.Field33DeepEqual(ano.SourceID) {
+		return false
+	}
+	if !p.Field100DeepEqual(ano.Ext) {
 		return false
 	}
 	if !p.Field200DeepEqual(ano.Session) {
@@ -3379,6 +3473,19 @@ func (p *SubmitExperimentRequest) Field33DeepEqual(src *string) bool {
 	}
 	if strings.Compare(*p.SourceID, *src) != 0 {
 		return false
+	}
+	return true
+}
+func (p *SubmitExperimentRequest) Field100DeepEqual(src map[string]string) bool {
+
+	if len(p.Ext) != len(src) {
+		return false
+	}
+	for k, v := range p.Ext {
+		_src := src[k]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
 	}
 	return true
 }
@@ -6921,12 +7028,13 @@ func (p *BatchDeleteExperimentsResponse) Field255DeepEqual(src *base.BaseResp) b
 }
 
 type RunExperimentRequest struct {
-	WorkspaceID *int64          `thrift:"workspace_id,1,optional" frugal:"1,optional,i64" json:"workspace_id" form:"workspace_id" `
-	ExptID      *int64          `thrift:"expt_id,2,optional" frugal:"2,optional,i64" json:"expt_id" form:"expt_id" `
-	ItemIds     []int64         `thrift:"item_ids,3,optional" frugal:"3,optional,list<i64>" json:"item_ids" form:"item_ids" `
-	ExptType    *expt.ExptType  `thrift:"expt_type,10,optional" frugal:"10,optional,ExptType" form:"expt_type" json:"expt_type,omitempty"`
-	Session     *common.Session `thrift:"session,200,optional" frugal:"200,optional,common.Session" form:"session" json:"session,omitempty" query:"session"`
-	Base        *base.Base      `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
+	WorkspaceID *int64            `thrift:"workspace_id,1,optional" frugal:"1,optional,i64" json:"workspace_id" form:"workspace_id" `
+	ExptID      *int64            `thrift:"expt_id,2,optional" frugal:"2,optional,i64" json:"expt_id" form:"expt_id" `
+	ItemIds     []int64           `thrift:"item_ids,3,optional" frugal:"3,optional,list<i64>" json:"item_ids" form:"item_ids" `
+	ExptType    *expt.ExptType    `thrift:"expt_type,10,optional" frugal:"10,optional,ExptType" form:"expt_type" json:"expt_type,omitempty"`
+	Ext         map[string]string `thrift:"ext,100,optional" frugal:"100,optional,map<string:string>" form:"ext" json:"ext,omitempty"`
+	Session     *common.Session   `thrift:"session,200,optional" frugal:"200,optional,common.Session" form:"session" json:"session,omitempty" query:"session"`
+	Base        *base.Base        `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
 }
 
 func NewRunExperimentRequest() *RunExperimentRequest {
@@ -6984,6 +7092,18 @@ func (p *RunExperimentRequest) GetExptType() (v expt.ExptType) {
 	return *p.ExptType
 }
 
+var RunExperimentRequest_Ext_DEFAULT map[string]string
+
+func (p *RunExperimentRequest) GetExt() (v map[string]string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetExt() {
+		return RunExperimentRequest_Ext_DEFAULT
+	}
+	return p.Ext
+}
+
 var RunExperimentRequest_Session_DEFAULT *common.Session
 
 func (p *RunExperimentRequest) GetSession() (v *common.Session) {
@@ -7019,6 +7139,9 @@ func (p *RunExperimentRequest) SetItemIds(val []int64) {
 func (p *RunExperimentRequest) SetExptType(val *expt.ExptType) {
 	p.ExptType = val
 }
+func (p *RunExperimentRequest) SetExt(val map[string]string) {
+	p.Ext = val
+}
 func (p *RunExperimentRequest) SetSession(val *common.Session) {
 	p.Session = val
 }
@@ -7031,6 +7154,7 @@ var fieldIDToName_RunExperimentRequest = map[int16]string{
 	2:   "expt_id",
 	3:   "item_ids",
 	10:  "expt_type",
+	100: "ext",
 	200: "session",
 	255: "Base",
 }
@@ -7049,6 +7173,10 @@ func (p *RunExperimentRequest) IsSetItemIds() bool {
 
 func (p *RunExperimentRequest) IsSetExptType() bool {
 	return p.ExptType != nil
+}
+
+func (p *RunExperimentRequest) IsSetExt() bool {
+	return p.Ext != nil
 }
 
 func (p *RunExperimentRequest) IsSetSession() bool {
@@ -7104,6 +7232,14 @@ func (p *RunExperimentRequest) Read(iprot thrift.TProtocol) (err error) {
 		case 10:
 			if fieldTypeId == thrift.I32 {
 				if err = p.ReadField10(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 100:
+			if fieldTypeId == thrift.MAP {
+				if err = p.ReadField100(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -7211,6 +7347,35 @@ func (p *RunExperimentRequest) ReadField10(iprot thrift.TProtocol) error {
 	p.ExptType = _field
 	return nil
 }
+func (p *RunExperimentRequest) ReadField100(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return err
+	}
+	_field := make(map[string]string, size)
+	for i := 0; i < size; i++ {
+		var _key string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_key = v
+		}
+
+		var _val string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_val = v
+		}
+
+		_field[_key] = _val
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return err
+	}
+	p.Ext = _field
+	return nil
+}
 func (p *RunExperimentRequest) ReadField200(iprot thrift.TProtocol) error {
 	_field := common.NewSession()
 	if err := _field.Read(iprot); err != nil {
@@ -7248,6 +7413,10 @@ func (p *RunExperimentRequest) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField10(oprot); err != nil {
 			fieldId = 10
+			goto WriteFieldError
+		}
+		if err = p.writeField100(oprot); err != nil {
+			fieldId = 100
 			goto WriteFieldError
 		}
 		if err = p.writeField200(oprot); err != nil {
@@ -7356,6 +7525,35 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 10 end error: ", p), err)
 }
+func (p *RunExperimentRequest) writeField100(oprot thrift.TProtocol) (err error) {
+	if p.IsSetExt() {
+		if err = oprot.WriteFieldBegin("ext", thrift.MAP, 100); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteMapBegin(thrift.STRING, thrift.STRING, len(p.Ext)); err != nil {
+			return err
+		}
+		for k, v := range p.Ext {
+			if err := oprot.WriteString(k); err != nil {
+				return err
+			}
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteMapEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 100 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 100 end error: ", p), err)
+}
 func (p *RunExperimentRequest) writeField200(oprot thrift.TProtocol) (err error) {
 	if p.IsSetSession() {
 		if err = oprot.WriteFieldBegin("session", thrift.STRUCT, 200); err != nil {
@@ -7419,6 +7617,9 @@ func (p *RunExperimentRequest) DeepEqual(ano *RunExperimentRequest) bool {
 	if !p.Field10DeepEqual(ano.ExptType) {
 		return false
 	}
+	if !p.Field100DeepEqual(ano.Ext) {
+		return false
+	}
 	if !p.Field200DeepEqual(ano.Session) {
 		return false
 	}
@@ -7474,6 +7675,19 @@ func (p *RunExperimentRequest) Field10DeepEqual(src *expt.ExptType) bool {
 	}
 	if *p.ExptType != *src {
 		return false
+	}
+	return true
+}
+func (p *RunExperimentRequest) Field100DeepEqual(src map[string]string) bool {
+
+	if len(p.Ext) != len(src) {
+		return false
+	}
+	for k, v := range p.Ext {
+		_src := src[k]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
 	}
 	return true
 }
@@ -7745,6 +7959,7 @@ type RetryExperimentRequest struct {
 	WorkspaceID *int64              `thrift:"workspace_id,2,optional" frugal:"2,optional,i64" json:"workspace_id" form:"workspace_id" `
 	ExptID      *int64              `thrift:"expt_id,3,optional" frugal:"3,optional,i64" json:"expt_id" path:"expt_id" `
 	ItemIds     []int64             `thrift:"item_ids,4,optional" frugal:"4,optional,list<i64>" json:"item_ids" form:"item_ids" `
+	Ext         map[string]string   `thrift:"ext,100,optional" frugal:"100,optional,map<string:string>" form:"ext" json:"ext,omitempty"`
 	Base        *base.Base          `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
 }
 
@@ -7803,6 +8018,18 @@ func (p *RetryExperimentRequest) GetItemIds() (v []int64) {
 	return p.ItemIds
 }
 
+var RetryExperimentRequest_Ext_DEFAULT map[string]string
+
+func (p *RetryExperimentRequest) GetExt() (v map[string]string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetExt() {
+		return RetryExperimentRequest_Ext_DEFAULT
+	}
+	return p.Ext
+}
+
 var RetryExperimentRequest_Base_DEFAULT *base.Base
 
 func (p *RetryExperimentRequest) GetBase() (v *base.Base) {
@@ -7826,6 +8053,9 @@ func (p *RetryExperimentRequest) SetExptID(val *int64) {
 func (p *RetryExperimentRequest) SetItemIds(val []int64) {
 	p.ItemIds = val
 }
+func (p *RetryExperimentRequest) SetExt(val map[string]string) {
+	p.Ext = val
+}
 func (p *RetryExperimentRequest) SetBase(val *base.Base) {
 	p.Base = val
 }
@@ -7835,6 +8065,7 @@ var fieldIDToName_RetryExperimentRequest = map[int16]string{
 	2:   "workspace_id",
 	3:   "expt_id",
 	4:   "item_ids",
+	100: "ext",
 	255: "Base",
 }
 
@@ -7852,6 +8083,10 @@ func (p *RetryExperimentRequest) IsSetExptID() bool {
 
 func (p *RetryExperimentRequest) IsSetItemIds() bool {
 	return p.ItemIds != nil
+}
+
+func (p *RetryExperimentRequest) IsSetExt() bool {
+	return p.Ext != nil
 }
 
 func (p *RetryExperimentRequest) IsSetBase() bool {
@@ -7903,6 +8138,14 @@ func (p *RetryExperimentRequest) Read(iprot thrift.TProtocol) (err error) {
 		case 4:
 			if fieldTypeId == thrift.LIST {
 				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 100:
+			if fieldTypeId == thrift.MAP {
+				if err = p.ReadField100(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -8002,6 +8245,35 @@ func (p *RetryExperimentRequest) ReadField4(iprot thrift.TProtocol) error {
 	p.ItemIds = _field
 	return nil
 }
+func (p *RetryExperimentRequest) ReadField100(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return err
+	}
+	_field := make(map[string]string, size)
+	for i := 0; i < size; i++ {
+		var _key string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_key = v
+		}
+
+		var _val string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_val = v
+		}
+
+		_field[_key] = _val
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return err
+	}
+	p.Ext = _field
+	return nil
+}
 func (p *RetryExperimentRequest) ReadField255(iprot thrift.TProtocol) error {
 	_field := base.NewBase()
 	if err := _field.Read(iprot); err != nil {
@@ -8031,6 +8303,10 @@ func (p *RetryExperimentRequest) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField4(oprot); err != nil {
 			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField100(oprot); err != nil {
+			fieldId = 100
 			goto WriteFieldError
 		}
 		if err = p.writeField255(oprot); err != nil {
@@ -8135,6 +8411,35 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
 }
+func (p *RetryExperimentRequest) writeField100(oprot thrift.TProtocol) (err error) {
+	if p.IsSetExt() {
+		if err = oprot.WriteFieldBegin("ext", thrift.MAP, 100); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteMapBegin(thrift.STRING, thrift.STRING, len(p.Ext)); err != nil {
+			return err
+		}
+		for k, v := range p.Ext {
+			if err := oprot.WriteString(k); err != nil {
+				return err
+			}
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteMapEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 100 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 100 end error: ", p), err)
+}
 func (p *RetryExperimentRequest) writeField255(oprot thrift.TProtocol) (err error) {
 	if p.IsSetBase() {
 		if err = oprot.WriteFieldBegin("Base", thrift.STRUCT, 255); err != nil {
@@ -8178,6 +8483,9 @@ func (p *RetryExperimentRequest) DeepEqual(ano *RetryExperimentRequest) bool {
 		return false
 	}
 	if !p.Field4DeepEqual(ano.ItemIds) {
+		return false
+	}
+	if !p.Field100DeepEqual(ano.Ext) {
 		return false
 	}
 	if !p.Field255DeepEqual(ano.Base) {
@@ -8230,6 +8538,19 @@ func (p *RetryExperimentRequest) Field4DeepEqual(src []int64) bool {
 	for i, v := range p.ItemIds {
 		_src := src[i]
 		if v != _src {
+			return false
+		}
+	}
+	return true
+}
+func (p *RetryExperimentRequest) Field100DeepEqual(src map[string]string) bool {
+
+	if len(p.Ext) != len(src) {
+		return false
+	}
+	for k, v := range p.Ext {
+		_src := src[k]
+		if strings.Compare(v, _src) != 0 {
 			return false
 		}
 	}

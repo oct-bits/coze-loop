@@ -611,7 +611,7 @@ func TestExptResultServiceImpl_MGetExperimentResult(t *testing.T) {
 				mockLWT.EXPECT().CheckWriteFlagByID(gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 				mockExptStatsRepo.EXPECT().MGet(gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.ExptStats{}, nil).AnyTimes()
 				mockExperimentRepo.EXPECT().GetEvaluatorRefByExptIDs(gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.ExptEvaluatorRef{}, nil).AnyTimes()
-				mockEvaluatorService.EXPECT().BatchGetEvaluatorVersion(gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.Evaluator{
+				mockEvaluatorService.EXPECT().BatchGetEvaluatorVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.Evaluator{
 					{
 						ID:            1,
 						Name:          "test_evaluator",
@@ -699,7 +699,7 @@ func TestExptResultServiceImpl_MGetExperimentResult(t *testing.T) {
 				mockMetric.EXPECT().EmitGetExptResult(gomock.Any(), gomock.Any()).AnyTimes()
 				mockLWT.EXPECT().CheckWriteFlagByID(gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 				mockExperimentRepo.EXPECT().GetEvaluatorRefByExptIDs(gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.ExptEvaluatorRef{}, nil)
-				mockEvaluatorService.EXPECT().BatchGetEvaluatorVersion(gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.Evaluator{}, nil)
+				mockEvaluatorService.EXPECT().BatchGetEvaluatorVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.Evaluator{}, nil)
 				mockEvaluationSetService.EXPECT().GetEvaluationSet(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&entity.EvaluationSet{
 					EvaluationSetVersion: &entity.EvaluationSetVersion{
 						EvaluationSetSchema: &entity.EvaluationSetSchema{
@@ -748,7 +748,7 @@ func TestExptResultServiceImpl_MGetExperimentResult(t *testing.T) {
 				mockMetric.EXPECT().EmitGetExptResult(gomock.Any(), gomock.Any()).AnyTimes()
 				mockLWT.EXPECT().CheckWriteFlagByID(gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 				mockExperimentRepo.EXPECT().GetEvaluatorRefByExptIDs(gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.ExptEvaluatorRef{}, nil)
-				mockEvaluatorService.EXPECT().BatchGetEvaluatorVersion(gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.Evaluator{}, nil)
+				mockEvaluatorService.EXPECT().BatchGetEvaluatorVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.Evaluator{}, nil)
 				mockEvaluationSetService.EXPECT().GetEvaluationSet(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&entity.EvaluationSet{
 					EvaluationSetVersion: &entity.EvaluationSetVersion{
 						EvaluationSetSchema: &entity.EvaluationSetSchema{
@@ -809,7 +809,7 @@ func TestExptResultServiceImpl_MGetExperimentResult(t *testing.T) {
 						EvaluatorID:        1,
 					},
 				}, nil).AnyTimes()
-				mockEvaluatorService.EXPECT().BatchGetEvaluatorVersion(gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.Evaluator{
+				mockEvaluatorService.EXPECT().BatchGetEvaluatorVersion(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.Evaluator{
 					{
 						ID:            1,
 						Name:          "test_evaluator",
@@ -956,16 +956,6 @@ func TestExptResultServiceImpl_RecordItemRunLogs(t *testing.T) {
 				// ArithOperateCount mock
 				mockExptStatsRepo.EXPECT().
 					ArithOperateCount(gomock.Any(), int64(1), int64(100), gomock.Any()).
-					Return(nil)
-
-				// BatchGetEvaluatorRecord mock
-				mockEvaluatorRecordService.EXPECT().
-					BatchGetEvaluatorRecord(gomock.Any(), gomock.Any(), true).
-					Return([]*entity.EvaluatorRecord{}, nil)
-
-				// PublishExptOnlineEvalResult mock
-				mockPublisher.EXPECT().
-					PublishExptOnlineEvalResult(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(nil)
 
 				return ExptResultServiceImpl{
@@ -1274,220 +1264,6 @@ func TestExptResultServiceImpl_RecordItemRunLogs(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name:      "获取评估记录失败",
-			exptID:    1,
-			exptRunID: 1,
-			itemID:    1,
-			spaceID:   100,
-			session: &entity.Session{
-				UserID: "test",
-			},
-			setup: func(ctrl *gomock.Controller) ExptResultServiceImpl {
-				mockExptItemResultRepo := repoMocks.NewMockIExptItemResultRepo(ctrl)
-				mockExptTurnResultRepo := repoMocks.NewMockIExptTurnResultRepo(ctrl)
-				mockExptStatsRepo := repoMocks.NewMockIExptStatsRepo(ctrl)
-				mockEvaluatorRecordService := svcMocks.NewMockEvaluatorRecordService(ctrl)
-
-				// GetItemRunLog mock
-				mockExptItemResultRepo.EXPECT().
-					GetItemRunLog(gomock.Any(), int64(1), int64(1), int64(1), int64(100)).
-					Return(&entity.ExptItemResultRunLog{Status: 1}, nil)
-
-				// GetItemTurnRunLogs mock
-				mockExptTurnResultRepo.EXPECT().
-					GetItemTurnRunLogs(gomock.Any(), int64(1), int64(1), int64(1), int64(100)).
-					Return([]*entity.ExptTurnResultRunLog{{TurnID: 1, Status: entity.TurnRunState_Success}}, nil)
-
-				// GetItemTurnResults mock
-				mockExptItemResultRepo.EXPECT().
-					GetItemTurnResults(gomock.Any(), int64(100), int64(1), int64(1)).
-					Return([]*entity.ExptTurnResult{{
-						ID:     1,
-						TurnID: 1,
-						Status: int32(entity.TurnRunState_Success),
-					}}, nil)
-
-				// SaveTurnResults mock
-				mockExptTurnResultRepo.EXPECT().
-					SaveTurnResults(gomock.Any(), gomock.Any()).
-					Return(nil)
-
-				// UpdateItemsResult mock
-				mockExptItemResultRepo.EXPECT().
-					UpdateItemsResult(gomock.Any(), int64(100), int64(1), []int64{1}, gomock.Any()).
-					Return(nil)
-
-				// UpdateItemRunLog mock
-				mockExptItemResultRepo.EXPECT().
-					UpdateItemRunLog(gomock.Any(), int64(1), int64(1), []int64{1}, gomock.Any(), int64(100)).
-					Return(nil)
-
-				// ArithOperateCount mock
-				mockExptStatsRepo.EXPECT().
-					ArithOperateCount(gomock.Any(), int64(1), int64(100), gomock.Any()).
-					Return(nil)
-
-				// BatchGetEvaluatorRecord mock 返回错误
-				mockEvaluatorRecordService.EXPECT().
-					BatchGetEvaluatorRecord(gomock.Any(), gomock.Any(), true).
-					Return(nil, fmt.Errorf("get evaluator record error"))
-
-				return ExptResultServiceImpl{
-					ExptItemResultRepo:     mockExptItemResultRepo,
-					ExptTurnResultRepo:     mockExptTurnResultRepo,
-					ExptStatsRepo:          mockExptStatsRepo,
-					evaluatorRecordService: mockEvaluatorRecordService,
-				}
-			},
-			wantErr: true,
-		},
-		{
-			name:      "发布评估结果失败",
-			exptID:    1,
-			exptRunID: 1,
-			itemID:    1,
-			spaceID:   100,
-			session: &entity.Session{
-				UserID: "test",
-			},
-			setup: func(ctrl *gomock.Controller) ExptResultServiceImpl {
-				mockExptItemResultRepo := repoMocks.NewMockIExptItemResultRepo(ctrl)
-				mockExptTurnResultRepo := repoMocks.NewMockIExptTurnResultRepo(ctrl)
-				mockExptStatsRepo := repoMocks.NewMockIExptStatsRepo(ctrl)
-				mockEvaluatorRecordService := svcMocks.NewMockEvaluatorRecordService(ctrl)
-				mockPublisher := eventsMocks.NewMockExptEventPublisher(ctrl)
-
-				// GetItemRunLog mock
-				mockExptItemResultRepo.EXPECT().
-					GetItemRunLog(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(&entity.ExptItemResultRunLog{Status: 1}, nil)
-
-				// GetItemTurnRunLogs mock
-				mockExptTurnResultRepo.EXPECT().
-					GetItemTurnRunLogs(gomock.Any(), int64(1), int64(1), int64(1), int64(100)).
-					Return([]*entity.ExptTurnResultRunLog{
-						{Status: entity.TurnRunState_Success},
-					}, nil)
-
-				// GetItemTurnResults mock
-				mockExptItemResultRepo.EXPECT().
-					GetItemTurnResults(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return([]*entity.ExptTurnResult{
-						{Status: int32(entity.TurnRunState_Success)},
-					}, nil)
-
-				// SaveTurnResults mock
-				mockExptTurnResultRepo.EXPECT().
-					SaveTurnResults(gomock.Any(), gomock.Any()).
-					Return(nil)
-
-				// UpdateItemsResult mock
-				mockExptItemResultRepo.EXPECT().
-					UpdateItemsResult(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil)
-
-				// UpdateItemRunLog mock
-				mockExptItemResultRepo.EXPECT().
-					UpdateItemRunLog(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil)
-
-				// ArithOperateCount mock
-				mockExptStatsRepo.EXPECT().
-					ArithOperateCount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil)
-
-				// BatchGetEvaluatorRecord mock
-				mockEvaluatorRecordService.EXPECT().
-					BatchGetEvaluatorRecord(gomock.Any(), gomock.Any(), gomock.Any()).
-					Return([]*entity.EvaluatorRecord{}, nil)
-
-				// PublishExptOnlineEvalResult mock 返回错误
-				mockPublisher.EXPECT().
-					PublishExptOnlineEvalResult(gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(fmt.Errorf("publish result error"))
-
-				return ExptResultServiceImpl{
-					ExptItemResultRepo:     mockExptItemResultRepo,
-					ExptTurnResultRepo:     mockExptTurnResultRepo,
-					ExptStatsRepo:          mockExptStatsRepo,
-					evaluatorRecordService: mockEvaluatorRecordService,
-					publisher:              mockPublisher,
-				}
-			},
-			wantErr: true,
-		},
-		{
-			name:      "轮次日志为空",
-			exptID:    1,
-			exptRunID: 1,
-			itemID:    1,
-			spaceID:   100,
-			session: &entity.Session{
-				UserID: "test",
-			},
-			setup: func(ctrl *gomock.Controller) ExptResultServiceImpl {
-				mockExptItemResultRepo := repoMocks.NewMockIExptItemResultRepo(ctrl)
-				mockExptTurnResultRepo := repoMocks.NewMockIExptTurnResultRepo(ctrl)
-				mockExptStatsRepo := repoMocks.NewMockIExptStatsRepo(ctrl)
-				mockEvaluatorRecordService := svcMocks.NewMockEvaluatorRecordService(ctrl)
-				mockPublisher := eventsMocks.NewMockExptEventPublisher(ctrl)
-
-				// GetItemRunLog mock
-				mockExptItemResultRepo.EXPECT().
-					GetItemRunLog(gomock.Any(), int64(1), int64(1), int64(1), int64(100)).
-					Return(&entity.ExptItemResultRunLog{Status: 1}, nil)
-
-				// GetItemTurnRunLogs mock 返回空结果
-				mockExptTurnResultRepo.EXPECT().
-					GetItemTurnRunLogs(gomock.Any(), int64(1), int64(1), int64(1), int64(100)).
-					Return([]*entity.ExptTurnResultRunLog{}, nil)
-
-				// GetItemTurnResults mock
-				mockExptItemResultRepo.EXPECT().
-					GetItemTurnResults(gomock.Any(), int64(100), int64(1), int64(1)).
-					Return([]*entity.ExptTurnResult{}, nil)
-
-				// SaveTurnResults mock
-				mockExptTurnResultRepo.EXPECT().
-					SaveTurnResults(gomock.Any(), gomock.Any()).
-					Return(nil)
-
-				// UpdateItemsResult mock
-				mockExptItemResultRepo.EXPECT().
-					UpdateItemsResult(gomock.Any(), int64(100), int64(1), []int64{1}, gomock.Any()).
-					Return(nil)
-
-				// UpdateItemRunLog mock
-				mockExptItemResultRepo.EXPECT().
-					UpdateItemRunLog(gomock.Any(), int64(1), int64(1), []int64{1}, gomock.Any(), int64(100)).
-					Return(nil)
-
-				// ArithOperateCount mock
-				mockExptStatsRepo.EXPECT().
-					ArithOperateCount(gomock.Any(), int64(1), int64(100), gomock.Any()).
-					Return(nil)
-
-				// BatchGetEvaluatorRecord mock
-				mockEvaluatorRecordService.EXPECT().
-					BatchGetEvaluatorRecord(gomock.Any(), []int64{}, true).
-					Return([]*entity.EvaluatorRecord{}, nil)
-
-				// PublishExptOnlineEvalResult mock
-				mockPublisher.EXPECT().
-					PublishExptOnlineEvalResult(gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil)
-
-				return ExptResultServiceImpl{
-					ExptItemResultRepo:     mockExptItemResultRepo,
-					ExptTurnResultRepo:     mockExptTurnResultRepo,
-					ExptStatsRepo:          mockExptStatsRepo,
-					evaluatorRecordService: mockEvaluatorRecordService,
-					publisher:              mockPublisher,
-				}
-			},
-			wantErr: false,
-		},
 	}
 
 	for _, tt := range tests {
@@ -1496,7 +1272,7 @@ func TestExptResultServiceImpl_RecordItemRunLogs(t *testing.T) {
 			defer ctrl.Finish()
 
 			svc := tt.setup(ctrl)
-			err := svc.RecordItemRunLogs(context.Background(), tt.exptID, tt.exptRunID, tt.itemID, tt.spaceID, tt.session)
+			_, err := svc.RecordItemRunLogs(context.Background(), tt.exptID, tt.exptRunID, tt.itemID, tt.spaceID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RecordItemRunLogs() error = %v, wantErr %v", err, tt.wantErr)
 			}

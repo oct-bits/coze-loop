@@ -113,20 +113,20 @@ func (e ExptResultServiceImpl) GetExptItemTurnResults(ctx context.Context, exptI
 	return res, nil
 }
 
-func (e ExptResultServiceImpl) RecordItemRunLogs(ctx context.Context, exptID, exptRunID int64, itemID int64, spaceID int64, session *entity.Session) error {
+func (e ExptResultServiceImpl) RecordItemRunLogs(ctx context.Context, exptID, exptRunID int64, itemID int64, spaceID int64) ([]*entity.ExptTurnEvaluatorResultRef, error) {
 	itemRunLog, err := e.ExptItemResultRepo.GetItemRunLog(ctx, exptID, exptRunID, itemID, spaceID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	turnRunLogs, err := e.ExptTurnResultRepo.GetItemTurnRunLogs(ctx, exptID, exptRunID, itemID, spaceID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	turnResults, err := e.ExptItemResultRepo.GetItemTurnResults(ctx, spaceID, exptID, itemID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	statsCntOp := &entity.StatsCntArithOp{OpStatusCnt: make(map[entity.TurnRunState]int)}
@@ -150,7 +150,7 @@ func (e ExptResultServiceImpl) RecordItemRunLogs(ctx context.Context, exptID, ex
 	for tid, result := range turn2Result {
 		rl := turn2RunLog[tid]
 		if rl == nil {
-			return fmt.Errorf("RecordItemRunLogs found null turn log result, expt_id: %v, expt_run_id: %v, item: %v, tid: %v", exptID, exptRunID, itemID, tid)
+			return nil, fmt.Errorf("RecordItemRunLogs found null turn log result, expt_id: %v, expt_run_id: %v, item: %v, tid: %v", exptID, exptRunID, itemID, tid)
 		}
 
 		result.Status = int32(rl.Status)
@@ -165,7 +165,7 @@ func (e ExptResultServiceImpl) RecordItemRunLogs(ctx context.Context, exptID, ex
 	if len(turnEvaluatorRefs) > 0 {
 		ids, err := e.idgen.GenMultiIDs(ctx, len(turnEvaluatorRefs))
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		for idx, ref := range turnEvaluatorRefs {
@@ -173,12 +173,12 @@ func (e ExptResultServiceImpl) RecordItemRunLogs(ctx context.Context, exptID, ex
 		}
 
 		if err := e.ExptTurnResultRepo.CreateTurnEvaluatorRefs(ctx, turnEvaluatorRefs); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	if err := e.ExptTurnResultRepo.SaveTurnResults(ctx, turnResults); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := e.ExptItemResultRepo.UpdateItemsResult(ctx, spaceID, exptID, []int64{itemID}, map[string]any{
@@ -186,61 +186,20 @@ func (e ExptResultServiceImpl) RecordItemRunLogs(ctx context.Context, exptID, ex
 		"log_id":  itemRunLog.LogID,
 		"err_msg": itemRunLog.ErrMsg,
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := e.ExptItemResultRepo.UpdateItemRunLog(ctx, exptID, exptRunID, []int64{itemID}, map[string]any{
 		"result_state": int32(entity.ExptItemResultStateResulted),
 	}, spaceID); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := e.ExptStatsRepo.ArithOperateCount(ctx, exptID, spaceID, statsCntOp); err != nil {
-		return err
+		return nil, err
 	}
 
-	evaluatorResultIDs := make([]int64, 0, len(turnEvaluatorRefs))
-	for _, ref := range turnEvaluatorRefs {
-		evaluatorResultIDs = append(evaluatorResultIDs, ref.EvaluatorResultID)
-	}
-	evaluatorRecords, err := e.evaluatorRecordService.BatchGetEvaluatorRecord(ctx, evaluatorResultIDs, true)
-	if err != nil {
-		return err
-	}
-	onlineExptTurnEvalResults := make([]*entity.OnlineExptTurnEvalResult, 0, len(evaluatorRecords))
-	for _, record := range evaluatorRecords {
-		onlineExptTurnEvalResult := &entity.OnlineExptTurnEvalResult{
-			EvaluatorVersionId: record.EvaluatorVersionID,
-			EvaluatorRecordId:  record.ID,
-			Status:             int32(record.Status),
-			Ext:                record.Ext,
-			BaseInfo:           record.BaseInfo,
-		}
-		if record.EvaluatorOutputData != nil {
-			if record.Status == entity.EvaluatorRunStatusFail && record.EvaluatorOutputData.EvaluatorRunError != nil {
-				onlineExptTurnEvalResult.EvaluatorRunError = &entity.EvaluatorRunError{
-					Code:    record.EvaluatorOutputData.EvaluatorRunError.Code,
-					Message: record.EvaluatorOutputData.EvaluatorRunError.Message,
-				}
-			} else if record.Status == entity.EvaluatorRunStatusSuccess && record.EvaluatorOutputData.EvaluatorResult != nil {
-				onlineExptTurnEvalResult.Score = gptr.Indirect(record.EvaluatorOutputData.EvaluatorResult.Score)
-				onlineExptTurnEvalResult.Reasoning = record.EvaluatorOutputData.EvaluatorResult.Reasoning
-			}
-		}
-
-		onlineExptTurnEvalResults = append(onlineExptTurnEvalResults, onlineExptTurnEvalResult)
-	}
-
-	// 发送评估结果Event
-	err = e.publisher.PublishExptOnlineEvalResult(ctx, &entity.OnlineExptEvalResultEvent{
-		ExptId:          exptID,
-		TurnEvalResults: onlineExptTurnEvalResults,
-	}, gptr.Of(time.Second*3))
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return turnEvaluatorRefs, nil
 }
 
 func NewTurnEvaluatorResultRefs(id, exptID, turnResultID, spaceID int64, evaluatorResults *entity.EvaluatorResults) []*entity.ExptTurnEvaluatorResultRef {
@@ -366,7 +325,7 @@ func (e ExptResultServiceImpl) getColumnEvaluators(ctx context.Context, spaceID 
 		return k
 	})
 
-	evaluatorVersions, err := e.evaluatorService.BatchGetEvaluatorVersion(ctx, evaluatorVersionIDs, true)
+	evaluatorVersions, err := e.evaluatorService.BatchGetEvaluatorVersion(ctx, nil, evaluatorVersionIDs, true)
 	if err != nil {
 		return nil, err
 	}

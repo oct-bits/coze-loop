@@ -129,6 +129,9 @@ var (
 		rmqproducer.NewExptEventPublisher,
 		evaluatorDomainService,
 		flagSet,
+		experiment.NewExptRepo,
+		exptmysql.NewExptDAO,
+		exptmysql.NewExptEvaluatorRefDAO,
 	)
 
 	evalSetDomainService = wire.NewSet(

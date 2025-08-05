@@ -102,16 +102,6 @@ func MaybeAddLteToWhere[T comparable](b *WhereBuilder, value T, column string, o
 	b.AddWhere(&clause.Lte{Column: column, Value: value})
 }
 
-func AddCursorToWhere(b *WhereBuilder, cursor int64, column string, opt ...func(builder *WhereBuilder)) {
-	for _, o := range opt {
-		o(b)
-	}
-	b.where.Exprs = append(b.where.Exprs, &clause.Lt{
-		Column: column,
-		Value:  cursor,
-	})
-}
-
 // MaybeAddLikeToWhere 模糊搜索，字符串为空时不添加。会对原字符串中的通配符进行转义，如 % 转义为 \%。
 func MaybeAddLikeToWhere(b *WhereBuilder, fieldLike string, column string, opt ...func(builder *WhereBuilder)) {
 	if fieldLike == "" {

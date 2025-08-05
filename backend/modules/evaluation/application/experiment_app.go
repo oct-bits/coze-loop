@@ -114,9 +114,18 @@ func (e *experimentApplication) CreateExperiment(ctx context.Context, req *expt.
 }
 
 func (e *experimentApplication) SubmitExperiment(ctx context.Context, req *expt.SubmitExperimentRequest) (r *expt.SubmitExperimentResponse, err error) {
+	logs.CtxInfo(ctx, "SubmitExperiment req: %v", json.Jsonify(req))
 	if hasDuplicates(req.EvaluatorVersionIds) {
 		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("duplicate evaluator version ids"))
 	}
+	if err := e.auth.Authorization(ctx, &rpc.AuthorizationParam{
+		ObjectID:      strconv.FormatInt(req.GetWorkspaceID(), 10),
+		SpaceID:       req.GetWorkspaceID(),
+		ActionObjects: []*rpc.ActionObject{{Action: gptr.Of(consts.ActionCreateExpt), EntityType: gptr.Of(rpc.AuthEntityType_Space)}},
+	}); err != nil {
+		return nil, err
+	}
+
 	cresp, err := e.CreateExperiment(ctx, &expt.CreateExperimentRequest{
 		WorkspaceID:           req.GetWorkspaceID(),
 		EvalSetVersionID:      req.EvalSetVersionID,
@@ -144,6 +153,7 @@ func (e *experimentApplication) SubmitExperiment(ctx context.Context, req *expt.
 		ExptID:      cresp.GetExperiment().ID,
 		ExptType:    req.ExptType,
 		Session:     req.Session,
+		Ext:         req.Ext,
 	})
 	if err != nil {
 		return nil, err
@@ -157,6 +167,13 @@ func (e *experimentApplication) SubmitExperiment(ctx context.Context, req *expt.
 }
 
 func (e *experimentApplication) CheckExperimentName(ctx context.Context, req *expt.CheckExperimentNameRequest) (r *expt.CheckExperimentNameResponse, err error) {
+	if err = e.auth.Authorization(ctx, &rpc.AuthorizationParam{
+		ObjectID:      strconv.FormatInt(req.GetWorkspaceID(), 10),
+		SpaceID:       req.GetWorkspaceID(),
+		ActionObjects: []*rpc.ActionObject{{Action: gptr.Of(consts.ActionCreateExpt), EntityType: gptr.Of(rpc.AuthEntityType_Space)}},
+	}); err != nil {
+		return nil, err
+	}
 	session := entity.NewSession(ctx)
 	pass, err := e.manager.CheckName(ctx, req.GetName(), req.GetWorkspaceID(), session)
 	if err != nil {
@@ -443,7 +460,7 @@ func (e *experimentApplication) RunExperiment(ctx context.Context, req *expt.Run
 		return nil, err
 	}
 
-	if err := e.manager.Run(ctx, req.GetExptID(), runID, req.GetWorkspaceID(), session, evalMode); err != nil {
+	if err := e.manager.Run(ctx, req.GetExptID(), runID, req.GetWorkspaceID(), session, evalMode, req.GetExt()); err != nil {
 		return nil, err
 	}
 	return &expt.RunExperimentResponse{
@@ -479,7 +496,7 @@ func (e *experimentApplication) RetryExperiment(ctx context.Context, req *expt.R
 		return nil, err
 	}
 
-	if err := e.manager.RetryUnSuccess(ctx, req.GetExptID(), runID, req.GetWorkspaceID(), session); err != nil {
+	if err := e.manager.RetryUnSuccess(ctx, req.GetExptID(), runID, req.GetWorkspaceID(), session, req.GetExt()); err != nil {
 		return nil, err
 	}
 
@@ -516,6 +533,14 @@ func (e *experimentApplication) KillExperiment(ctx context.Context, req *expt.Ki
 }
 
 func (e *experimentApplication) BatchGetExperimentResult_(ctx context.Context, req *expt.BatchGetExperimentResultRequest) (r *expt.BatchGetExperimentResultResponse, err error) {
+	err = e.auth.Authorization(ctx, &rpc.AuthorizationParam{
+		ObjectID:      strconv.FormatInt(req.WorkspaceID, 10),
+		SpaceID:       req.WorkspaceID,
+		ActionObjects: []*rpc.ActionObject{{Action: gptr.Of(consts.ActionReadExpt), EntityType: gptr.Of(rpc.AuthEntityType_Space)}},
+	})
+	if err != nil {
+		return nil, err
+	}
 	page := entity.NewPage(int(req.GetPageNumber()), int(req.GetPageSize()))
 	filters := make(map[int64]*entity.ExptTurnResultFilter, len(req.GetFilters()))
 	for exptID, f := range req.GetFilters() {
@@ -549,7 +574,15 @@ func (e *experimentApplication) BatchGetExperimentResult_(ctx context.Context, r
 }
 
 func (e *experimentApplication) BatchGetExperimentAggrResult_(ctx context.Context, req *expt.BatchGetExperimentAggrResultRequest) (r *expt.BatchGetExperimentAggrResultResponse, err error) {
-	aggrResults, err := e.BatchGetExptAggrResultByExperimentIDs(ctx, req.WorkspaceID, req.ExperimentIds)
+	err = e.auth.Authorization(ctx, &rpc.AuthorizationParam{
+		ObjectID:      strconv.FormatInt(req.WorkspaceID, 10),
+		SpaceID:       req.WorkspaceID,
+		ActionObjects: []*rpc.ActionObject{{Action: gptr.Of(consts.ActionReadExpt), EntityType: gptr.Of(rpc.AuthEntityType_Space)}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	aggrResults, err := e.ExptAggrResultService.BatchGetExptAggrResultByExperimentIDs(ctx, req.WorkspaceID, req.ExperimentIds)
 	if err != nil {
 		return nil, err
 	}

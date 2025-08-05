@@ -273,7 +273,7 @@ func (e *ExptMangerImpl) getExptTupleByID(ctx context.Context, exptTupleID *enti
 	if len(exptTupleID.EvaluatorVersionIDs) > 0 {
 		pool.Add(func() error {
 			var poolErr error
-			evaluators, poolErr = e.evaluatorService.BatchGetEvaluatorVersion(ctx, exptTupleID.EvaluatorVersionIDs, false)
+			evaluators, poolErr = e.evaluatorService.BatchGetEvaluatorVersion(ctx, nil, exptTupleID.EvaluatorVersionIDs, false)
 			if poolErr != nil {
 				return poolErr
 			}
@@ -383,7 +383,7 @@ func (e *ExptMangerImpl) mgetExptTupleByID(ctx context.Context, tupleIDs []*enti
 	if len(evaluatorVersionIDs) > 0 {
 		pool.Add(func() error {
 			var poolErr error
-			evaluators, poolErr = e.evaluatorService.BatchGetEvaluatorVersion(ctx, evaluatorVersionIDs, true)
+			evaluators, poolErr = e.evaluatorService.BatchGetEvaluatorVersion(ctx, nil, evaluatorVersionIDs, true)
 			if poolErr != nil {
 				return poolErr
 			}

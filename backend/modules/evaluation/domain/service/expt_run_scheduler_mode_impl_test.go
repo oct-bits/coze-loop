@@ -2059,6 +2059,7 @@ func TestNewSchedulerModeFactory(t *testing.T) {
 	idem := idemmocks.NewMockIdempotentService(ctrl)
 	configer := configmocks.NewMockIConfiger(ctrl)
 	publisher := eventmocks.NewMockExptEventPublisher(ctrl)
+	evaluatorRecordService := svcmocks.NewMockEvaluatorRecordService(ctrl)
 
 	factory := NewSchedulerModeFactory(
 		manager,
@@ -2071,6 +2072,7 @@ func TestNewSchedulerModeFactory(t *testing.T) {
 		idem,
 		configer,
 		publisher,
+		evaluatorRecordService,
 	)
 
 	tests := []struct {
@@ -2132,8 +2134,9 @@ func TestNewExptSubmitMode(t *testing.T) {
 	idem := idemmocks.NewMockIdempotentService(ctrl)
 	configer := configmocks.NewMockIConfiger(ctrl)
 	publisher := eventmocks.NewMockExptEventPublisher(ctrl)
+	evaluatorRecordService := svcmocks.NewMockEvaluatorRecordService(ctrl)
 
-	exec := NewExptSubmitMode(manager, exptItemResultRepo, exptStatsRepo, exptTurnResultRepo, idgenerator, evaluationSetItemService, exptRepo, idem, configer, publisher)
+	exec := NewExptSubmitMode(manager, exptItemResultRepo, exptStatsRepo, exptTurnResultRepo, idgenerator, evaluationSetItemService, exptRepo, idem, configer, publisher, evaluatorRecordService)
 	assert.NotNil(t, exec)
 	assert.Equal(t, manager, exec.manager)
 	assert.Equal(t, exptItemResultRepo, exec.exptItemResultRepo)
@@ -2159,8 +2162,9 @@ func TestNewExptFailRetryMode(t *testing.T) {
 	idem := idemmocks.NewMockIdempotentService(ctrl)
 	configer := configmocks.NewMockIConfiger(ctrl)
 	publisher := eventmocks.NewMockExptEventPublisher(ctrl)
+	evaluatorRecordService := svcmocks.NewMockEvaluatorRecordService(ctrl)
 
-	exec := NewExptFailRetryMode(manager, exptItemResultRepo, exptStatsRepo, exptTurnResultRepo, idgenerator, exptRepo, idem, configer, publisher)
+	exec := NewExptFailRetryMode(manager, exptItemResultRepo, exptStatsRepo, exptTurnResultRepo, idgenerator, exptRepo, idem, configer, publisher, evaluatorRecordService)
 	assert.NotNil(t, exec)
 	assert.Equal(t, manager, exec.manager)
 	assert.Equal(t, exptItemResultRepo, exec.exptItemResultRepo)
@@ -2186,8 +2190,9 @@ func TestNewExptAppendMode(t *testing.T) {
 	idem := idemmocks.NewMockIdempotentService(ctrl)
 	configer := configmocks.NewMockIConfiger(ctrl)
 	publisher := eventmocks.NewMockExptEventPublisher(ctrl)
+	evaluatorRecordService := svcmocks.NewMockEvaluatorRecordService(ctrl)
 
-	exec := NewExptAppendMode(manager, exptItemResultRepo, exptStatsRepo, exptTurnResultRepo, idgenerator, evaluationSetItemService, exptRepo, idem, configer, publisher)
+	exec := NewExptAppendMode(manager, exptItemResultRepo, exptStatsRepo, exptTurnResultRepo, idgenerator, evaluationSetItemService, exptRepo, idem, configer, publisher, evaluatorRecordService)
 	assert.NotNil(t, exec)
 	assert.Equal(t, manager, exec.manager)
 	assert.Equal(t, exptItemResultRepo, exec.exptItemResultRepo)
@@ -2199,4 +2204,240 @@ func TestNewExptAppendMode(t *testing.T) {
 	assert.Equal(t, idem, exec.idem)
 	assert.Equal(t, configer, exec.configer)
 	assert.Equal(t, publisher, exec.publisher)
+}
+
+func TestExptSubmitExec_PublishResult(t *testing.T) {
+	e := &ExptSubmitExec{}
+	err := e.PublishResult(context.Background(), nil, nil)
+	assert.NoError(t, err)
+}
+
+func TestExptFailRetryExec_PublishResult(t *testing.T) {
+	type fields struct {
+		manager                *svcmocks.MockIExptManager
+		exptItemResultRepo     *mock_repo.MockIExptItemResultRepo
+		idem                   *idemmocks.MockIdempotentService
+		configer               *configmocks.MockIConfiger
+		publisher              *eventmocks.MockExptEventPublisher
+		evaluatorRecordService *svcmocks.MockEvaluatorRecordService
+	}
+	type args struct {
+		ctx               context.Context
+		turnEvaluatorRefs []*entity.ExptTurnEvaluatorResultRef
+		event             *entity.ExptScheduleEvent
+	}
+	tests := []struct {
+		name        string
+		prepareMock func(f *fields, ctrl *gomock.Controller, args args)
+		args        args
+		wantErr     bool
+	}{
+		{
+			name: "离线实验不发布",
+			args: args{
+				ctx: context.Background(),
+				event: &entity.ExptScheduleEvent{
+					ExptType: entity.ExptType_Offline,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "非离线实验-委托给baseExec",
+			args: args{
+				ctx: context.Background(),
+				event: &entity.ExptScheduleEvent{
+					ExptType: entity.ExptType_Online,
+				},
+				turnEvaluatorRefs: []*entity.ExptTurnEvaluatorResultRef{},
+			},
+			prepareMock: func(f *fields, ctrl *gomock.Controller, args args) {
+				// No mocks needed for empty refs
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			f := &fields{
+				manager:                svcmocks.NewMockIExptManager(ctrl),
+				exptItemResultRepo:     mock_repo.NewMockIExptItemResultRepo(ctrl),
+				idem:                   idemmocks.NewMockIdempotentService(ctrl),
+				configer:               configmocks.NewMockIConfiger(ctrl),
+				publisher:              eventmocks.NewMockExptEventPublisher(ctrl),
+				evaluatorRecordService: svcmocks.NewMockEvaluatorRecordService(ctrl),
+			}
+			if tt.prepareMock != nil {
+				tt.prepareMock(f, ctrl, tt.args)
+			}
+			e := &ExptFailRetryExec{
+				manager:                f.manager,
+				exptItemResultRepo:     f.exptItemResultRepo,
+				idem:                   f.idem,
+				configer:               f.configer,
+				publisher:              f.publisher,
+				evaluatorRecordService: f.evaluatorRecordService,
+			}
+			err := e.PublishResult(tt.args.ctx, tt.args.turnEvaluatorRefs, tt.args.event)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+	TestExptBaseExec_publishResult(t)
+}
+
+func TestExptBaseExec_publishResult(t *testing.T) {
+	type fields struct {
+		manager                *svcmocks.MockIExptManager
+		idem                   *idemmocks.MockIdempotentService
+		configer               *configmocks.MockIConfiger
+		exptItemResultRepo     *mock_repo.MockIExptItemResultRepo
+		evaluatorRecordService *svcmocks.MockEvaluatorRecordService
+		publisher              *eventmocks.MockExptEventPublisher
+	}
+	type args struct {
+		ctx               context.Context
+		turnEvaluatorRefs []*entity.ExptTurnEvaluatorResultRef
+		event             *entity.ExptScheduleEvent
+	}
+	tests := []struct {
+		name        string
+		prepareMock func(f *fields, ctrl *gomock.Controller, args args)
+		args        args
+		wantErr     bool
+		assertErr   func(t *testing.T, err error)
+	}{
+		{
+			name: "空refs直接返回",
+			args: args{
+				ctx:               context.Background(),
+				turnEvaluatorRefs: []*entity.ExptTurnEvaluatorResultRef{},
+				event:             &entity.ExptScheduleEvent{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "获取评估记录失败",
+			args: args{
+				ctx: context.Background(),
+				turnEvaluatorRefs: []*entity.ExptTurnEvaluatorResultRef{
+					{ExptID: 1, EvaluatorResultID: 101},
+				},
+				event: &entity.ExptScheduleEvent{},
+			},
+			prepareMock: func(f *fields, ctrl *gomock.Controller, args args) {
+				f.evaluatorRecordService.EXPECT().BatchGetEvaluatorRecord(gomock.Any(), []int64{101}, true).Return(nil, errors.New("db error"))
+			},
+			wantErr: true,
+			assertErr: func(t *testing.T, err error) {
+				assert.ErrorContains(t, err, "db error")
+			},
+		},
+		{
+			name: "发布事件失败",
+			args: args{
+				ctx: context.Background(),
+				turnEvaluatorRefs: []*entity.ExptTurnEvaluatorResultRef{
+					{ExptID: 1, EvaluatorResultID: 101},
+				},
+				event: &entity.ExptScheduleEvent{},
+			},
+			prepareMock: func(f *fields, ctrl *gomock.Controller, args args) {
+				f.evaluatorRecordService.EXPECT().BatchGetEvaluatorRecord(gomock.Any(), []int64{101}, true).Return([]*entity.EvaluatorRecord{
+					{ID: 101, Status: entity.EvaluatorRunStatusSuccess},
+				}, nil)
+				f.publisher.EXPECT().PublishExptOnlineEvalResult(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("publish error"))
+			},
+			wantErr: true,
+			assertErr: func(t *testing.T, err error) {
+				assert.ErrorContains(t, err, "publish error")
+			},
+		},
+		{
+			name: "正常流程-多种状态",
+			args: args{
+				ctx: context.Background(),
+				turnEvaluatorRefs: []*entity.ExptTurnEvaluatorResultRef{
+					{ExptID: 1, EvaluatorResultID: 101},
+					{ExptID: 1, EvaluatorResultID: 102},
+					{ExptID: 1, EvaluatorResultID: 103},
+				},
+				event: &entity.ExptScheduleEvent{},
+			},
+			prepareMock: func(f *fields, ctrl *gomock.Controller, args args) {
+				f.evaluatorRecordService.EXPECT().BatchGetEvaluatorRecord(gomock.Any(), []int64{101, 102, 103}, true).Return([]*entity.EvaluatorRecord{
+					{
+						ID:     101,
+						Status: entity.EvaluatorRunStatusSuccess,
+						EvaluatorOutputData: &entity.EvaluatorOutputData{
+							EvaluatorResult: &entity.EvaluatorResult{Score: ptr.Of(1.0), Reasoning: "good"},
+						},
+					},
+					{
+						ID:     102,
+						Status: entity.EvaluatorRunStatusFail,
+						EvaluatorOutputData: &entity.EvaluatorOutputData{
+							EvaluatorRunError: &entity.EvaluatorRunError{Code: 123, Message: "failed"},
+						},
+					},
+					{
+						ID:     103,
+						Status: 3, // custom status to test fallthrough
+					},
+				}, nil)
+				f.publisher.EXPECT().PublishExptOnlineEvalResult(gomock.Any(), gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, event *entity.OnlineExptEvalResultEvent, ttl *time.Duration) error {
+						assert.Equal(t, int64(1), event.ExptId)
+						assert.Len(t, event.TurnEvalResults, 3)
+						// check result 101
+						assert.Equal(t, int64(101), event.TurnEvalResults[0].EvaluatorRecordId)
+						assert.Equal(t, float64(1.0), event.TurnEvalResults[0].Score)
+						assert.Equal(t, "good", event.TurnEvalResults[0].Reasoning)
+						// check result 102
+						assert.Equal(t, int64(102), event.TurnEvalResults[1].EvaluatorRecordId)
+						assert.Equal(t, int32(123), event.TurnEvalResults[1].EvaluatorRunError.Code)
+						assert.Equal(t, "failed", event.TurnEvalResults[1].EvaluatorRunError.Message)
+						// check result 103
+						assert.Equal(t, int64(103), event.TurnEvalResults[2].EvaluatorRecordId)
+						assert.Equal(t, int32(3), event.TurnEvalResults[2].Status)
+						assert.Nil(t, event.TurnEvalResults[2].EvaluatorRunError)
+						return nil
+					})
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			f := &fields{
+				manager:                svcmocks.NewMockIExptManager(ctrl),
+				idem:                   idemmocks.NewMockIdempotentService(ctrl),
+				configer:               configmocks.NewMockIConfiger(ctrl),
+				exptItemResultRepo:     mock_repo.NewMockIExptItemResultRepo(ctrl),
+				evaluatorRecordService: svcmocks.NewMockEvaluatorRecordService(ctrl),
+				publisher:              eventmocks.NewMockExptEventPublisher(ctrl),
+			}
+			if tt.prepareMock != nil {
+				tt.prepareMock(f, ctrl, tt.args)
+			}
+			e := newExptBaseExec(f.manager, f.idem, f.configer, f.exptItemResultRepo, f.publisher, f.evaluatorRecordService)
+			err := e.publishResult(tt.args.ctx, tt.args.turnEvaluatorRefs, tt.args.event)
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.assertErr != nil {
+					tt.assertErr(t, err)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }

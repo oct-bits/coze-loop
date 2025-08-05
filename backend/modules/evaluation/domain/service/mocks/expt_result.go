@@ -128,17 +128,18 @@ func (mr *MockExptResultServiceMockRecorder) MGetStats(arg0, arg1, arg2, arg3 in
 }
 
 // RecordItemRunLogs mocks base method.
-func (m *MockExptResultService) RecordItemRunLogs(arg0 context.Context, arg1, arg2, arg3, arg4 int64, arg5 *entity.Session) error {
+func (m *MockExptResultService) RecordItemRunLogs(arg0 context.Context, arg1, arg2, arg3, arg4 int64) ([]*entity.ExptTurnEvaluatorResultRef, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecordItemRunLogs", arg0, arg1, arg2, arg3, arg4, arg5)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "RecordItemRunLogs", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].([]*entity.ExptTurnEvaluatorResultRef)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // RecordItemRunLogs indicates an expected call of RecordItemRunLogs.
-func (mr *MockExptResultServiceMockRecorder) RecordItemRunLogs(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+func (mr *MockExptResultServiceMockRecorder) RecordItemRunLogs(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordItemRunLogs", reflect.TypeOf((*MockExptResultService)(nil).RecordItemRunLogs), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordItemRunLogs", reflect.TypeOf((*MockExptResultService)(nil).RecordItemRunLogs), arg0, arg1, arg2, arg3, arg4)
 }
 
 // MockExptAggrResultService is a mock of ExptAggrResultService interface.

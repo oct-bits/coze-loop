@@ -232,6 +232,9 @@ func TestExptSchedulerImpl_Schedule(t *testing.T) {
 }
 
 func TestExptSchedulerImpl_RecordEvalItemRunLogs(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	testUserID := "test_user_id_123"
 
 	type fields struct {
@@ -243,6 +246,8 @@ func TestExptSchedulerImpl_RecordEvalItemRunLogs(t *testing.T) {
 		event         *entity.ExptScheduleEvent
 		completeItems []*entity.ExptEvalItem
 	}
+
+	mockMode := entitymocks.NewMockExptSchedulerMode(ctrl)
 
 	tests := []struct {
 		name        string
@@ -268,7 +273,8 @@ func TestExptSchedulerImpl_RecordEvalItemRunLogs(t *testing.T) {
 				},
 			},
 			prepareMock: func(f *fields, ctrl *gomock.Controller, args args) { // 修改点：添加 ctrl 参数
-				f.ResultSvc.EXPECT().RecordItemRunLogs(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				f.ResultSvc.EXPECT().RecordItemRunLogs(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
+				mockMode.EXPECT().PublishResult(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 			},
 			wantErr: false,
 			assertErr: func(t *testing.T, err error) {
@@ -279,8 +285,6 @@ func TestExptSchedulerImpl_RecordEvalItemRunLogs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
 
 			f := &fields{
 				ResultSvc: svcmocks.NewMockExptResultService(ctrl),
@@ -294,7 +298,7 @@ func TestExptSchedulerImpl_RecordEvalItemRunLogs(t *testing.T) {
 				ResultSvc: f.ResultSvc,
 			}
 
-			err := svc.recordEvalItemRunLogs(tt.args.ctx, tt.args.event, tt.args.completeItems)
+			err := svc.recordEvalItemRunLogs(tt.args.ctx, tt.args.event, tt.args.completeItems, mockMode)
 			if tt.assertErr != nil {
 				tt.assertErr(t, err)
 			}
