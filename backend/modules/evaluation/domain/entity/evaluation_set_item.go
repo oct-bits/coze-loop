@@ -124,3 +124,11 @@ type ItemErrorDetail struct {
 	StartIndex *int32
 	EndIndex   *int32
 }
+
+type ItemSnapshotFieldMapping struct {
+	FieldKey string `json:"field_key"`
+	// float_map, int_map, string_map, tag_array
+	MappingKey string `json:"mapping_key"`
+	// tag_array时，无值
+	MappingSubKey string `json:"mapping_subKey"`
+}

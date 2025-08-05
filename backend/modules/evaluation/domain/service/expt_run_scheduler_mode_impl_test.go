@@ -333,6 +333,7 @@ func TestExptSubmitExec_ExptStart(t *testing.T) {
 		idem                     *idemmocks.MockIdempotentService
 		configer                 *configmocks.MockIConfiger
 		publisher                *eventmocks.MockExptEventPublisher
+		resultSvc                *svcmocks.MockExptResultService
 	}
 
 	type args struct {
@@ -376,6 +377,7 @@ func TestExptSubmitExec_ExptStart(t *testing.T) {
 				f.exptRepo.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 				f.configer.EXPECT().GetExptExecConf(gomock.Any(), gomock.Any()).Return(&entity.ExptExecConf{ZombieIntervalSecond: 1}).Times(1)
 				f.idem.EXPECT().Set(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+				f.resultSvc.EXPECT().UpsertExptTurnResultFilter(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
 			},
 			wantErr: false,
 			assertErr: func(t *testing.T, err error) {
@@ -443,6 +445,7 @@ func TestExptSubmitExec_ExptStart(t *testing.T) {
 				idem:                     idemmocks.NewMockIdempotentService(ctrl),
 				configer:                 configmocks.NewMockIConfiger(ctrl),
 				publisher:                eventmocks.NewMockExptEventPublisher(ctrl),
+				resultSvc:                svcmocks.NewMockExptResultService(ctrl),
 			}
 
 			if tt.prepareMock != nil {
@@ -460,6 +463,7 @@ func TestExptSubmitExec_ExptStart(t *testing.T) {
 				idem:                     f.idem,
 				configer:                 f.configer,
 				publisher:                f.publisher,
+				resultSvc:                f.resultSvc,
 			}
 
 			err := e.ExptStart(tt.args.ctx, tt.args.event, tt.args.expt)
@@ -785,10 +789,10 @@ func TestExptFailRetryExec_ExptStart(t *testing.T) {
 				f.exptStatsRepo.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(&entity.ExptStats{
 					ExptID:            1,
 					SpaceID:           3,
-					PendingTurnCnt:    1,
-					FailTurnCnt:       1,
-					TerminatedTurnCnt: 1,
-					ProcessingTurnCnt: 1,
+					PendingItemCnt:    1,
+					FailItemCnt:       1,
+					TerminatedItemCnt: 1,
+					ProcessingItemCnt: 1,
 				}, nil).Times(1)
 				f.exptStatsRepo.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 				f.exptRepo.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil).Times(1)
@@ -2060,6 +2064,7 @@ func TestNewSchedulerModeFactory(t *testing.T) {
 	configer := configmocks.NewMockIConfiger(ctrl)
 	publisher := eventmocks.NewMockExptEventPublisher(ctrl)
 	evaluatorRecordService := svcmocks.NewMockEvaluatorRecordService(ctrl)
+	resultService := svcmocks.NewMockExptResultService(ctrl)
 
 	factory := NewSchedulerModeFactory(
 		manager,
@@ -2073,6 +2078,7 @@ func TestNewSchedulerModeFactory(t *testing.T) {
 		configer,
 		publisher,
 		evaluatorRecordService,
+		resultService,
 	)
 
 	tests := []struct {
@@ -2135,8 +2141,9 @@ func TestNewExptSubmitMode(t *testing.T) {
 	configer := configmocks.NewMockIConfiger(ctrl)
 	publisher := eventmocks.NewMockExptEventPublisher(ctrl)
 	evaluatorRecordService := svcmocks.NewMockEvaluatorRecordService(ctrl)
+	resultSvc := svcmocks.NewMockExptResultService(ctrl)
 
-	exec := NewExptSubmitMode(manager, exptItemResultRepo, exptStatsRepo, exptTurnResultRepo, idgenerator, evaluationSetItemService, exptRepo, idem, configer, publisher, evaluatorRecordService)
+	exec := NewExptSubmitMode(manager, exptItemResultRepo, exptStatsRepo, exptTurnResultRepo, idgenerator, evaluationSetItemService, exptRepo, idem, configer, publisher, evaluatorRecordService, resultSvc)
 	assert.NotNil(t, exec)
 	assert.Equal(t, manager, exec.manager)
 	assert.Equal(t, exptItemResultRepo, exec.exptItemResultRepo)

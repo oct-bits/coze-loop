@@ -77,6 +77,7 @@ func TestExptSchedulerImpl_Schedule(t *testing.T) {
 
 	type fields struct {
 		manager              *svcmocks.MockIExptManager
+		resultSvc            *svcmocks.MockExptResultService
 		exptRepo             *mock_repo.MockIExperimentRepo
 		exptItemResultRepo   *mock_repo.MockIExptItemResultRepo
 		exptTurnResultRepo   *mock_repo.MockIExptTurnResultRepo
@@ -121,6 +122,8 @@ func TestExptSchedulerImpl_Schedule(t *testing.T) {
 				f.configer.EXPECT().GetExptExecConf(gomock.Any(), int64(3)).Return(&entity.ExptExecConf{ZombieIntervalSecond: math.MaxInt}).AnyTimes()
 				f.configer.EXPECT().GetConsumerConf(gomock.Any()).Return(&entity.ExptConsumerConf{}).AnyTimes()
 				f.idGen.EXPECT().GenMultiIDs(gomock.Any(), gomock.Any()).Return([]int64{1, 2, 3}, nil).AnyTimes()
+				f.publisher.EXPECT().PublishExptTurnResultFilterEvent(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				f.resultSvc.EXPECT().UpsertExptTurnResultFilter(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 				mode := entitymocks.NewMockExptSchedulerMode(ctrl)
 				mode.EXPECT().ExptStart(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
@@ -165,6 +168,8 @@ func TestExptSchedulerImpl_Schedule(t *testing.T) {
 				mode.EXPECT().ScheduleStart(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
 				mode.EXPECT().ScanEvalItems(gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.ExptEvalItem{}, []*entity.ExptEvalItem{}, []*entity.ExptEvalItem{}, nil).Times(1)
 				mode.EXPECT().ScheduleEnd(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test error")).Times(1)
+				f.publisher.EXPECT().PublishExptTurnResultFilterEvent(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				f.resultSvc.EXPECT().UpsertExptTurnResultFilter(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 				f.schedulerModeFactory.EXPECT().
 					NewSchedulerMode(gomock.Any()).
 					Return(mode, nil).Times(1)
@@ -195,6 +200,7 @@ func TestExptSchedulerImpl_Schedule(t *testing.T) {
 				evalSetItemSvc:       svcmocks.NewMockEvaluationSetItemService(ctrl),
 				mutex:                lockmocks.NewMockILocker(ctrl),
 				schedulerModeFactory: svcmocks.NewMockSchedulerModeFactory(ctrl),
+				resultSvc:            svcmocks.NewMockExptResultService(ctrl),
 			}
 
 			if tt.prepareMock != nil {
@@ -214,6 +220,7 @@ func TestExptSchedulerImpl_Schedule(t *testing.T) {
 				evaluationSetItemService: f.evalSetItemSvc,
 				Mutex:                    f.mutex,
 				schedulerModeFactory:     f.schedulerModeFactory,
+				ResultSvc:                f.resultSvc,
 			}
 			svc.Endpoints = SchedulerChain(
 				svc.HandleEventErr,
@@ -239,6 +246,7 @@ func TestExptSchedulerImpl_RecordEvalItemRunLogs(t *testing.T) {
 
 	type fields struct {
 		ResultSvc *svcmocks.MockExptResultService
+		Publisher *eventmocks.MockExptEventPublisher
 	}
 
 	type args struct {
@@ -275,6 +283,8 @@ func TestExptSchedulerImpl_RecordEvalItemRunLogs(t *testing.T) {
 			prepareMock: func(f *fields, ctrl *gomock.Controller, args args) { // 修改点：添加 ctrl 参数
 				f.ResultSvc.EXPECT().RecordItemRunLogs(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 				mockMode.EXPECT().PublishResult(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				f.ResultSvc.EXPECT().UpsertExptTurnResultFilter(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				f.Publisher.EXPECT().PublishExptTurnResultFilterEvent(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 			},
 			wantErr: false,
 			assertErr: func(t *testing.T, err error) {
@@ -288,6 +298,7 @@ func TestExptSchedulerImpl_RecordEvalItemRunLogs(t *testing.T) {
 
 			f := &fields{
 				ResultSvc: svcmocks.NewMockExptResultService(ctrl),
+				Publisher: eventmocks.NewMockExptEventPublisher(ctrl),
 			}
 
 			if tt.prepareMock != nil {
@@ -296,6 +307,7 @@ func TestExptSchedulerImpl_RecordEvalItemRunLogs(t *testing.T) {
 
 			svc := &ExptSchedulerImpl{
 				ResultSvc: f.ResultSvc,
+				Publisher: f.Publisher,
 			}
 
 			err := svc.recordEvalItemRunLogs(tt.args.ctx, tt.args.event, tt.args.completeItems, mockMode)
@@ -316,6 +328,7 @@ func TestExptSchedulerImpl_SubmitItemEval(t *testing.T) {
 		configer           *configmocks.MockIConfiger
 		publisher          *eventmocks.MockExptEventPublisher
 		metric             *metricsmocks.MockExptMetric
+		resultSvc          *svcmocks.MockExptResultService
 	}
 
 	type args struct {
@@ -358,6 +371,7 @@ func TestExptSchedulerImpl_SubmitItemEval(t *testing.T) {
 			prepareMock: func(f *fields, ctrl *gomock.Controller, args args) { // 修改点：添加 ctrl 参数
 				f.exptItemResultRepo.EXPECT().UpdateItemRunLog(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 				f.exptItemResultRepo.EXPECT().UpdateItemsResult(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				f.exptItemResultRepo.EXPECT().BatchGet(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.ExptItemResult{}, nil).AnyTimes()
 				f.exptTurnResultRepo.EXPECT().UpdateTurnResultsWithItemIDs(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 				f.exptTurnResultRepo.EXPECT().BatchGet(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.ExptTurnResult{}, nil).AnyTimes()
 				f.publisher.EXPECT().BatchPublishExptRecordEvalEvent(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
@@ -370,6 +384,7 @@ func TestExptSchedulerImpl_SubmitItemEval(t *testing.T) {
 				f.configer.EXPECT().GetConsumerConf(gomock.Any()).Return(&entity.ExptConsumerConf{}).AnyTimes()
 				f.exptStatsRepo.EXPECT().ArithOperateCount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 				f.metric.EXPECT().EmitItemExecEval(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+				f.resultSvc.EXPECT().UpsertExptTurnResultFilter(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 			},
 			wantErr: false,
 			assertErr: func(t *testing.T, err error) {
@@ -390,6 +405,7 @@ func TestExptSchedulerImpl_SubmitItemEval(t *testing.T) {
 				configer:           configmocks.NewMockIConfiger(ctrl),
 				publisher:          eventmocks.NewMockExptEventPublisher(ctrl),
 				metric:             metricsmocks.NewMockExptMetric(ctrl),
+				resultSvc:          svcmocks.NewMockExptResultService(ctrl),
 			}
 
 			if tt.prepareMock != nil {
@@ -403,6 +419,7 @@ func TestExptSchedulerImpl_SubmitItemEval(t *testing.T) {
 				Configer:           f.configer,
 				Publisher:          f.publisher,
 				Metric:             f.metric,
+				ResultSvc:          f.resultSvc,
 			}
 
 			err := svc.handleToSubmits(tt.args.ctx, tt.args.event, tt.args.toSubmits)

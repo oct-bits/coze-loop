@@ -21,17 +21,6 @@ import (
 	"github.com/coze-dev/coze-loop/backend/pkg/logs"
 )
 
-//go:generate  mockgen -destination  ./mocks/expt_scheduler.go  --package mocks . SchedulerModeFactory
-//type ExptSchedulerMode interface {
-//	Mode() entity.ExptRunMode
-//	ExptStart(ctx context.Context, event *entity.ExptScheduleEvent, expt *entity.Experiment) error
-//	ScanEvalItems(ctx context.Context, event *entity.ExptScheduleEvent, expt *entity.Experiment) (toSubmit, incomplete, complete []*entity.ExptEvalItem, err error)
-//	ExptEnd(ctx context.Context, event *entity.ExptScheduleEvent, expt *entity.Experiment, toSubmit, incomplete int) (nextTick bool, err error)
-//	ScheduleStart(ctx context.Context, event *entity.ExptScheduleEvent, expt *entity.Experiment) error
-//	ScheduleEnd(ctx context.Context, event *entity.ExptScheduleEvent, expt *entity.Experiment, toSubmit, incomplete int) error
-//	NextTick(ctx context.Context, event *entity.ExptScheduleEvent, nextTick bool) error
-//}
-
 // SchedulerModeFactory 定义创建 ExptSchedulerMode 实例的接口
 type SchedulerModeFactory interface {
 	NewSchedulerMode(
@@ -51,6 +40,7 @@ func NewSchedulerModeFactory(
 	configer component.IConfiger,
 	publisher events.ExptEventPublisher,
 	evaluatorRecordService EvaluatorRecordService,
+	resultSvc ExptResultService,
 ) SchedulerModeFactory {
 	return &DefaultSchedulerModeFactory{
 		manager:                  manager,
@@ -64,6 +54,7 @@ func NewSchedulerModeFactory(
 		configer:                 configer,
 		publisher:                publisher,
 		evaluatorRecordService:   evaluatorRecordService,
+		resultSvc:                resultSvc,
 	}
 }
 
@@ -80,6 +71,7 @@ type DefaultSchedulerModeFactory struct {
 	configer                 component.IConfiger
 	publisher                events.ExptEventPublisher
 	evaluatorRecordService   EvaluatorRecordService
+	resultSvc                ExptResultService
 }
 
 func (f *DefaultSchedulerModeFactory) NewSchedulerMode(
@@ -87,7 +79,7 @@ func (f *DefaultSchedulerModeFactory) NewSchedulerMode(
 ) (entity.ExptSchedulerMode, error) {
 	switch mode {
 	case entity.EvaluationModeSubmit:
-		return NewExptSubmitMode(f.manager, f.exptItemResultRepo, f.exptStatsRepo, f.exptTurnResultRepo, f.idgenerator, f.evaluationSetItemService, f.exptRepo, f.idem, f.configer, f.publisher, f.evaluatorRecordService), nil
+		return NewExptSubmitMode(f.manager, f.exptItemResultRepo, f.exptStatsRepo, f.exptTurnResultRepo, f.idgenerator, f.evaluationSetItemService, f.exptRepo, f.idem, f.configer, f.publisher, f.evaluatorRecordService, f.resultSvc), nil
 	case entity.EvaluationModeFailRetry:
 		return NewExptFailRetryMode(f.manager, f.exptItemResultRepo, f.exptStatsRepo, f.exptTurnResultRepo, f.idgenerator, f.exptRepo, f.idem, f.configer, f.publisher, f.evaluatorRecordService), nil
 	case entity.EvaluationModeAppend:
@@ -109,6 +101,7 @@ type ExptSubmitExec struct {
 	configer                 component.IConfiger
 	publisher                events.ExptEventPublisher
 	evaluatorRecordService   EvaluatorRecordService
+	resultSvc                ExptResultService
 }
 
 func NewExptSubmitMode(
@@ -123,6 +116,7 @@ func NewExptSubmitMode(
 	configer component.IConfiger,
 	publisher events.ExptEventPublisher,
 	evaluatorRecordService EvaluatorRecordService,
+	resultSvc ExptResultService,
 ) *ExptSubmitExec {
 	return &ExptSubmitExec{
 		manager:                  manager,
@@ -136,6 +130,7 @@ func NewExptSubmitMode(
 		configer:                 configer,
 		publisher:                publisher,
 		evaluatorRecordService:   evaluatorRecordService,
+		resultSvc:                resultSvc,
 	}
 }
 
@@ -164,13 +159,13 @@ func (e *ExptSubmitExec) ExptStart(ctx context.Context, event *entity.ExptSchedu
 
 		page     = int32(1)
 		pageSize = int32(100)
-		cnt      = 0
+		itemCnt  = 0
 		total    = int64(0)
 	)
 
 	for i := 0; i < maxLoop; i++ {
 		logs.CtxInfo(ctx, "ExptSubmitExec.ExptStart scan item, expt_id: %v, expt_run_id: %v, eval_set_id: %v, eval_set_ver_id: %v, page: %v, limit: %v, cur_cnt: %v, total: %v",
-			event.ExptID, event.ExptRunID, evalSetID, evalSetVersionID, page, pageSize, cnt, total)
+			event.ExptID, event.ExptRunID, evalSetID, evalSetVersionID, page, pageSize, itemCnt, total)
 
 		items, t, _, err := e.evaluationSetItemService.ListEvaluationSetItems(ctx, &entity.ListEvaluationSetItemsParam{
 			SpaceID:         event.SpaceID,
@@ -183,7 +178,7 @@ func (e *ExptSubmitExec) ExptStart(ctx context.Context, event *entity.ExptSchedu
 			return err
 		}
 
-		cnt += len(items)
+		itemCnt += len(items)
 		page++
 		total = gptr.Indirect(t)
 
@@ -234,20 +229,22 @@ func (e *ExptSubmitExec) ExptStart(ctx context.Context, event *entity.ExptSchedu
 			return err
 		}
 
-		if cnt >= int(total) || len(items) == 0 {
+		if itemCnt >= int(total) || len(items) == 0 {
 			break
 		}
 
 		time.Sleep(time.Millisecond * 30)
 	}
-
-	logs.CtxInfo(ctx, "ExptSubmitExec.ExptStart ListEvaluationSetItem done, expt_id: %v, cnt: %v, total: %v", event.ExptID, cnt, total)
-
+	err = e.resultSvc.UpsertExptTurnResultFilter(ctx, event.SpaceID, event.ExptID, nil)
+	if err != nil {
+		logs.CtxError(ctx, "ExptSubmitExec.ExptStart UpsertExptTurnResultFilter fail, expt_id: %v, err: %v", event.ExptID, err)
+	}
+	logs.CtxInfo(ctx, "ExptSubmitExec ExptStart UpsertExptTurnResultFilter done, expt_id: %v, err: %v", event.ExptID, err)
 	if err := e.exptStatsRepo.UpdateByExptID(ctx, event.ExptID, event.SpaceID,
 		&entity.ExptStats{
 			ExptID:         event.ExptID,
 			SpaceID:        event.SpaceID,
-			PendingTurnCnt: int32(cnt),
+			PendingItemCnt: int32(itemCnt),
 		}); err != nil {
 		return err
 	}
@@ -471,11 +468,11 @@ func (e *ExptFailRetryExec) ExptStart(ctx context.Context, event *entity.ExptSch
 		return err
 	}
 
-	pendingCnt := got.PendingTurnCnt + got.FailTurnCnt + got.TerminatedTurnCnt + got.ProcessingTurnCnt
-	got.PendingTurnCnt = pendingCnt
-	got.FailTurnCnt = 0
-	got.TerminatedTurnCnt = 0
-	got.ProcessingTurnCnt = 0
+	pendingCnt := got.PendingItemCnt + got.FailItemCnt + got.TerminatedItemCnt + got.ProcessingItemCnt
+	got.PendingItemCnt = pendingCnt
+	got.FailItemCnt = 0
+	got.TerminatedItemCnt = 0
+	got.ProcessingItemCnt = 0
 
 	if err := e.exptStatsRepo.Save(ctx, got); err != nil {
 		return err

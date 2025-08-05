@@ -85,7 +85,7 @@ func Init(
 	}
 
 	evaluationHandler, err := apis.InitEvaluationHandler(
-		ctx, idgen, db, cmdable, configFactory, mqFactory,
+		ctx, idgen, db, ckDB, cmdable, configFactory, mqFactory,
 		lodataset.NewLocalDatasetService(dataHandler.IDatasetApplication, validator.KiteXValidatorMW),
 		lomanage.NewLocalPromptManageService(promptHandler.PromptManageService),
 		loexecute.NewLocalPromptExecuteService(promptHandler.PromptExecuteService),

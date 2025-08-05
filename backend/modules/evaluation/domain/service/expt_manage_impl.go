@@ -6,6 +6,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,7 +36,7 @@ import (
 )
 
 func NewExptManager(
-	// tupleSvc IExptTupleService,
+// tupleSvc IExptTupleService,
 	exptResultService ExptResultService,
 	exptRepo repo.IExperimentRepo,
 	exptRunLogRepo repo.IExptRunLogRepo,
@@ -481,10 +482,18 @@ func (e *ExptMangerImpl) CreateExpt(ctx context.Context, req *entity.CreateExptP
 	}
 
 	evaluatorRefs := make([]*entity.ExptEvaluatorVersionRef, 0)
-	for _, es := range tuple.Evaluators {
+	exptTurnResultFilterKeyMappings := make([]*entity.ExptTurnResultFilterKeyMapping, 0)
+	for i, es := range tuple.Evaluators {
 		evaluatorRefs = append(evaluatorRefs, &entity.ExptEvaluatorVersionRef{
 			EvaluatorID:        es.ID,
 			EvaluatorVersionID: es.GetEvaluatorVersion().GetID(),
+		})
+		exptTurnResultFilterKeyMappings = append(exptTurnResultFilterKeyMappings, &entity.ExptTurnResultFilterKeyMapping{
+			SpaceID:   req.WorkspaceID,
+			ExptID:    ids[0],
+			FromField: strconv.FormatInt(es.GetEvaluatorVersion().GetID(), 10),
+			ToKey:     "key" + strconv.Itoa(i+1),
+			FieldType: entity.FieldTypeEvaluator,
 		})
 	}
 	// toEntity, err := experiment.NewEvalConfConvert().ConvertToEntity(req)
@@ -531,6 +540,10 @@ func (e *ExptMangerImpl) CreateExpt(ctx context.Context, req *entity.CreateExptP
 		ExptID:  do.ID,
 	}
 	if err := e.exptResultService.CreateStats(ctx, stats, session); err != nil {
+		return nil, err
+	}
+
+	if err := e.exptResultService.InsertExptTurnResultFilterKeyMappings(ctx, exptTurnResultFilterKeyMappings); err != nil {
 		return nil, err
 	}
 

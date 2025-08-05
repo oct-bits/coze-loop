@@ -17,6 +17,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/entity"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/events"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/repo"
+	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 	"github.com/coze-dev/coze-loop/backend/pkg/logs"
 )
 
@@ -107,6 +108,25 @@ func (s *EvaluatorRecordServiceImpl) CorrectEvaluatorRecord(ctx context.Context,
 		}, gptr.Of(time.Second*3)); err != nil {
 			return err
 		}
+	}
+
+	if err = s.exptPublisher.PublishExptTurnResultFilterEvent(ctx, &entity.ExptTurnResultFilterEvent{
+		ExperimentID: evaluatorRecordDO.ExperimentID,
+		SpaceID:      evaluatorRecordDO.SpaceID,
+		ItemID:       []int64{evaluatorRecordDO.ItemID},
+	}, nil); err != nil {
+		logs.CtxError(ctx, "Failed to send ExptTurnResultFilterEvent, err: %v", err)
+	}
+
+	err = s.exptPublisher.PublishExptTurnResultFilterEvent(ctx, &entity.ExptTurnResultFilterEvent{
+		ExperimentID: evaluatorRecordDO.ExperimentID,
+		SpaceID:      evaluatorRecordDO.SpaceID,
+		ItemID:       []int64{evaluatorRecordDO.ItemID},
+		RetryTimes:   ptr.Of(int32(0)),
+		FilterType:   ptr.Of(entity.UpsertExptTurnResultFilterTypeCheck),
+	}, ptr.Of(10*time.Second))
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -20,6 +20,11 @@ type ExptResultService interface {
 	GetStats(ctx context.Context, exptID int64, spaceID int64, session *entity.Session) (*entity.ExptStats, error)
 	MGetStats(ctx context.Context, exptIDs []int64, spaceID int64, session *entity.Session) ([]*entity.ExptStats, error)
 	CalculateStats(ctx context.Context, exptID, spaceID int64, session *entity.Session) (*entity.ExptCalculateStats, error)
+
+	ManualUpsertExptTurnResultFilter(ctx context.Context, spaceID, exptID int64, itemIDs []int64) error
+	UpsertExptTurnResultFilter(ctx context.Context, spaceID, exptID int64, itemID []int64) error
+	InsertExptTurnResultFilterKeyMappings(ctx context.Context, mappings []*entity.ExptTurnResultFilterKeyMapping) error
+	CompareExptTurnResultFilters(ctx context.Context, spaceID, exptID int64, itemIDs []int64, retryTimes int32) error
 }
 
 type ExptAggrResultService interface {

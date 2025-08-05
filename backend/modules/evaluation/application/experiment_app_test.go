@@ -2364,11 +2364,13 @@ func TestExperimentApplication_InvokeExperiment(t *testing.T) {
 	mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
 	mockManager := servicemocks.NewMockIExptManager(ctrl)
 	mockEvalSetItemService := servicemocks.NewMockEvaluationSetItemService(ctrl)
+	mockResultSvc := servicemocks.NewMockExptResultService(ctrl)
 
 	app := &experimentApplication{
 		auth:                     mockAuth,
 		manager:                  mockManager,
 		evaluationSetItemService: mockEvalSetItemService,
+		resultSvc:                mockResultSvc,
 	}
 
 	validSpaceID := int64(1001)
@@ -2460,6 +2462,9 @@ func TestExperimentApplication_InvokeExperiment(t *testing.T) {
 						}
 						return nil
 					})
+
+				// Mock UpsertExptTurnResultFilter
+				mockResultSvc.EXPECT().UpsertExptTurnResultFilter(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 			},
 			wantResp: &exptpb.InvokeExperimentResponse{
 				AddedItems: map[int64]int64{int64(0): 6001, int64(1): 6002},

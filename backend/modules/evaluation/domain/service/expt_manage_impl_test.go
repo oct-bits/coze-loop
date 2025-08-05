@@ -156,13 +156,15 @@ func TestExptMangerImpl_CreateExpt(t *testing.T) {
 		Return([]*entity.Evaluator{{ID: 10, EvaluatorType: entity.EvaluatorTypePrompt, PromptEvaluatorVersion: &entity.PromptEvaluatorVersion{EvaluatorID: 10}}}, nil).AnyTimes()
 	mgr.idgenerator.(*idgenMocks.MockIIDGenerator).EXPECT().GenMultiIDs(ctx, 2).Return([]int64{1, 2}, nil).AnyTimes()
 	mgr.exptResultService.(*svcMocks.MockExptResultService).EXPECT().CreateStats(ctx, gomock.Any(), session).Return(nil).AnyTimes()
+	// 模拟 InsertExptTurnResultFilterKeyMappings 方法
+	mgr.exptResultService.(*svcMocks.MockExptResultService).EXPECT().InsertExptTurnResultFilterKeyMappings(ctx, gomock.Any()).Return(nil).AnyTimes()
 	mgr.exptRepo.(*repoMocks.MockIExperimentRepo).EXPECT().Create(ctx, gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	mgr.lwt.(*lwtMocks.MockILatestWriteTracker).EXPECT().SetWriteFlag(ctx, gomock.Any(), gomock.Any()).Return().AnyTimes()
+	mgr.exptRepo.(*repoMocks.MockIExperimentRepo).EXPECT().GetByName(ctx, gomock.Any(), gomock.Any()).Return(nil, true, nil).AnyTimes()
 	mgr.audit.(*auditMocks.MockIAuditService).
 		EXPECT().
 		Audit(gomock.Any(), gomock.Any()).
 		Return(audit.AuditRecord{AuditStatus: audit.AuditStatus_Approved}, nil).AnyTimes()
-	mgr.exptRepo.(*repoMocks.MockIExperimentRepo).EXPECT().GetByName(ctx, gomock.Any(), gomock.Any()).Return(nil, true, nil).AnyTimes()
 
 	t.Run("normal", func(t *testing.T) {
 		_, err := mgr.CreateExpt(ctx, param, session)

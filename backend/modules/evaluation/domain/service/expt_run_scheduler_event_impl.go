@@ -24,6 +24,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
 	"github.com/coze-dev/coze-loop/backend/pkg/json"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/goroutine"
+	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 	gslice "github.com/coze-dev/coze-loop/backend/pkg/lang/slices"
 	"github.com/coze-dev/coze-loop/backend/pkg/logs"
 )
@@ -286,6 +287,31 @@ func (e *ExptSchedulerImpl) recordEvalItemRunLogs(ctx context.Context, event *en
 			logs.CtxError(ctx, "publish online result fail, err: %v", err)
 		}
 	}
+	if len(completeItems) == 0 {
+		return nil
+	}
+	err := e.ResultSvc.UpsertExptTurnResultFilter(ctx, event.SpaceID, event.ExptID, gslice.Map(completeItems, func(item *entity.ExptEvalItem) int64 {
+		return item.ItemID
+	}))
+	if err != nil {
+		logs.CtxError(ctx, "UpsertExptTurnResultFilter fail, err: %v", err)
+	}
+	err = e.Publisher.PublishExptTurnResultFilterEvent(ctx, &entity.ExptTurnResultFilterEvent{
+		ExperimentID: event.ExptID,
+		SpaceID:      event.SpaceID,
+		ItemID: gslice.Map(completeItems, func(item *entity.ExptEvalItem) int64 {
+			return item.ItemID
+		}),
+		RetryTimes: ptr.Of(int32(0)),
+		FilterType: ptr.Of(entity.UpsertExptTurnResultFilterTypeCheck),
+	}, ptr.Of(10*time.Second))
+	if err != nil {
+		return err
+	}
+
+	logs.CtxInfo(ctx, "ExptSchedulerImpl recordEvalItemRunLogs UpsertExptTurnResultFilter done, expt_id: %v, item_ids: %v", event.ExptID, gslice.Map(completeItems, func(item *entity.ExptEvalItem) int64 {
+		return item.ItemID
+	}))
 	return nil
 }
 
@@ -332,19 +358,25 @@ func (e *ExptSchedulerImpl) handleToSubmits(ctx context.Context, event *entity.E
 		return err
 	}
 
+	err := e.ResultSvc.UpsertExptTurnResultFilter(ctx, event.SpaceID, event.ExptID, itemIDs)
+	if err != nil {
+		logs.CtxError(ctx, "ExptSubmitExec.ExptStart UpsertExptTurnResultFilter fail, expt_id: %v, err: %v", event.ExptID, err)
+	}
+	logs.CtxInfo(ctx, "ExptSchedulerImpl handleToSubmits UpsertExptTurnResultFilter success, expt_id: %v", event.ExptID)
+
 	if err := e.ExptTurnResultRepo.UpdateTurnResultsWithItemIDs(ctx, event.ExptID, itemIDs, event.SpaceID, map[string]any{"status": int32(entity.TurnRunState_Processing)}); err != nil {
 		return err
 	}
 
-	turnResults, err := e.ExptTurnResultRepo.BatchGet(ctx, event.SpaceID, event.ExptID, itemIDs)
+	itemResults, err := e.ExptItemResultRepo.BatchGet(ctx, event.SpaceID, event.ExptID, itemIDs)
 	if err != nil {
 		return err
 	}
 
 	if err := e.ExptStatsRepo.ArithOperateCount(ctx, event.ExptID, event.SpaceID, &entity.StatsCntArithOp{
-		OpStatusCnt: map[entity.TurnRunState]int{
-			entity.TurnRunState_Processing: len(turnResults),
-			entity.TurnRunState_Queueing:   0 - len(turnResults),
+		OpStatusCnt: map[entity.ItemRunState]int{
+			entity.ItemRunState_Processing: len(itemResults),
+			entity.ItemRunState_Queueing:   0 - len(itemResults),
 		},
 	}); err != nil {
 		return err

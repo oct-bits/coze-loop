@@ -5,12 +5,12 @@
 package mocks
 
 import (
-	context "context"
-	reflect "reflect"
+	"context"
+	"reflect"
 
-	gomock "go.uber.org/mock/gomock"
+	"go.uber.org/mock/gomock"
 
-	entity "github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/entity"
+	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/entity"
 )
 
 // MockIExptManager is a mock of IExptManager interface.

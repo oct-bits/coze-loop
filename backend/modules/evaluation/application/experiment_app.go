@@ -28,6 +28,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/pkg/errno"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
 	"github.com/coze-dev/coze-loop/backend/pkg/json"
+	"github.com/coze-dev/coze-loop/backend/pkg/lang/maps"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/slices"
 	"github.com/coze-dev/coze-loop/backend/pkg/logs"
 )
@@ -62,7 +63,7 @@ func NewExperimentApplication(
 	manager service.IExptManager,
 	scheduler service.ExptSchedulerEvent,
 	recordEval service.ExptItemEvalEvent,
-	// tupleSvc service.IExptTupleService,
+// tupleSvc service.IExptTupleService,
 	idgen idgen.IIDGenerator,
 	configer component.IConfiger,
 	auth rpc.IAuthProvider,
@@ -535,20 +536,15 @@ func (e *experimentApplication) BatchGetExperimentResult_(ctx context.Context, r
 		return nil, err
 	}
 	page := entity.NewPage(int(req.GetPageNumber()), int(req.GetPageSize()))
-	filters := make(map[int64]*entity.ExptTurnResultFilter, len(req.GetFilters()))
-	for exptID, f := range req.GetFilters() {
-		filter, err := experiment.ConvertExptTurnResultFilter(f.GetFilters())
-		if err != nil {
-			return nil, err
-		}
-		filters[exptID] = filter
-	}
 	param := &entity.MGetExperimentResultParam{
-		SpaceID:    req.GetWorkspaceID(),
-		ExptIDs:    req.GetExperimentIds(),
-		BaseExptID: req.BaselineExperimentID,
-		Filters:    filters,
-		Page:       page,
+		SpaceID:        req.GetWorkspaceID(),
+		ExptIDs:        req.GetExperimentIds(),
+		BaseExptID:     req.BaselineExperimentID,
+		Page:           page,
+		UseAccelerator: req.GetUseAccelerator(),
+	}
+	if err = buildExptTurnResultFilter(req, param); err != nil {
+		return nil, err
 	}
 	columnEvaluators, columnEvalSetFields, itemResults, total, err := e.resultSvc.MGetExperimentResult(ctx, param)
 	if err != nil {
@@ -564,6 +560,33 @@ func (e *experimentApplication) BatchGetExperimentResult_(ctx context.Context, r
 	}
 
 	return resp, nil
+}
+
+func buildExptTurnResultFilter(req *expt.BatchGetExperimentResultRequest, param *entity.MGetExperimentResultParam) error {
+	if req.GetUseAccelerator() {
+		filterAccelerators := make(map[int64]*entity.ExptTurnResultFilterAccelerator, len(req.GetFilters()))
+		for exptID, f := range req.GetFilters() {
+			filter, err := experiment.ConvertExptTurnResultFilterAccelerator(f)
+			if err != nil {
+				return err
+			}
+			filterAccelerators[exptID] = filter
+		}
+		param.FilterAccelerators = filterAccelerators
+		param.UseAccelerator = true
+	} else {
+		filters := make(map[int64]*entity.ExptTurnResultFilter, len(req.GetFilters()))
+		for exptID, f := range req.GetFilters() {
+			filter, err := experiment.ConvertExptTurnResultFilter(f.GetFilters())
+			if err != nil {
+				return err
+			}
+			filters[exptID] = filter
+		}
+		param.Filters = filters
+		param.UseAccelerator = false
+	}
+	return nil
 }
 
 func (e *experimentApplication) BatchGetExperimentAggrResult_(ctx context.Context, req *expt.BatchGetExperimentAggrResultRequest) (r *expt.BatchGetExperimentAggrResultResponse, err error) {
@@ -679,6 +702,12 @@ func (e *experimentApplication) InvokeExperiment(ctx context.Context, req *expt.
 	if err != nil {
 		return nil, err
 	}
+	err = e.resultSvc.UpsertExptTurnResultFilter(ctx, req.GetWorkspaceID(), req.GetExperimentID(), maps.ToSlice(idMap, func(k int64, v int64) int64 {
+		return v
+	}))
+	if err != nil {
+		return nil, err
+	}
 
 	return &expt.InvokeExperimentResponse{
 		AddedItems: idMap,
@@ -714,6 +743,29 @@ func (e *experimentApplication) FinishExperiment(ctx context.Context, req *expt.
 	}
 
 	return &expt.FinishExperimentResponse{BaseResp: base.NewBaseResp()}, nil
+}
+
+func (e *experimentApplication) UpsertExptTurnResultFilter(ctx context.Context, req *expt.UpsertExptTurnResultFilterRequest) (r *expt.UpsertExptTurnResultFilterResponse, err error) {
+	if req.GetFilterType() == expt.UpsertExptTurnResultFilterTypeMANUAL {
+		logs.CtxInfo(ctx, "ManualUpsertExptTurnResultFilter, req: %v", json.Jsonify(req))
+		err = e.resultSvc.ManualUpsertExptTurnResultFilter(ctx, req.GetWorkspaceID(), req.GetExperimentID(), req.GetItemIds())
+		if err != nil {
+			logs.CtxWarn(ctx, "ManualUpsertExptTurnResultFilter fail, err: %v", err)
+			return nil, err
+		}
+	} else if req.GetFilterType() == expt.UpsertExptTurnResultFilterTypeCHECK {
+		err = e.resultSvc.CompareExptTurnResultFilters(ctx, req.GetWorkspaceID(), req.GetExperimentID(), req.GetItemIds(), req.GetRetryTimes())
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err = e.resultSvc.UpsertExptTurnResultFilter(ctx, req.GetWorkspaceID(), req.GetExperimentID(), req.GetItemIds())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &expt.UpsertExptTurnResultFilterResponse{}, nil
 }
 
 func hasDuplicates(slice []int64) bool {

@@ -433,11 +433,11 @@ func (e *ExptMangerImpl) CompleteExpt(ctx context.Context, exptID, spaceID int64
 	}
 
 	exptStats := &entity.ExptStats{
-		SuccessTurnCnt:    int32(stats.SuccessTurnCnt),
-		PendingTurnCnt:    int32(stats.PendingTurnCnt),
-		FailTurnCnt:       int32(stats.FailTurnCnt),
-		ProcessingTurnCnt: int32(stats.ProcessingTurnCnt),
-		TerminatedTurnCnt: int32(stats.TerminatedTurnCnt),
+		SuccessItemCnt:    int32(stats.SuccessItemCnt),
+		PendingItemCnt:    int32(stats.PendingItemCnt),
+		FailItemCnt:       int32(stats.FailItemCnt),
+		ProcessingItemCnt: int32(stats.ProcessingItemCnt),
+		TerminatedItemCnt: int32(stats.TerminatedItemCnt),
 	}
 
 	if err := e.statsRepo.UpdateByExptID(ctx, exptID, spaceID, exptStats); err != nil {
@@ -446,7 +446,7 @@ func (e *ExptMangerImpl) CompleteExpt(ctx context.Context, exptID, spaceID int64
 
 	status := opt.Status
 	if !entity.IsExptFinished(status) {
-		if stats.FailTurnCnt > 0 || stats.TerminatedTurnCnt > 0 || len(stats.IncompleteTurnIDs) > 0 {
+		if stats.FailItemCnt > 0 || stats.TerminatedItemCnt > 0 || len(stats.IncompleteTurnIDs) > 0 {
 			status = entity.ExptStatus_Failed
 		} else {
 			status = entity.ExptStatus_Success
@@ -609,8 +609,8 @@ func (e *ExptMangerImpl) Invoke(ctx context.Context, invokeExptReq *entity.Invok
 
 	// 更新stats
 	if err = e.statsRepo.ArithOperateCount(ctx, invokeExptReq.ExptID, invokeExptReq.SpaceID, &entity.StatsCntArithOp{
-		OpStatusCnt: map[entity.TurnRunState]int{
-			entity.TurnRunState_Queueing: turnCnt,
+		OpStatusCnt: map[entity.ItemRunState]int{
+			entity.ItemRunState_Queueing: itemCnt,
 		},
 	}); err != nil {
 		return err
@@ -730,11 +730,11 @@ func (e *ExptMangerImpl) PendExpt(ctx context.Context, exptID, spaceID int64, se
 	}
 
 	exptStats := &entity.ExptStats{
-		SuccessTurnCnt:    int32(stats.SuccessTurnCnt),
-		PendingTurnCnt:    int32(stats.PendingTurnCnt),
-		FailTurnCnt:       int32(stats.FailTurnCnt),
-		ProcessingTurnCnt: int32(stats.ProcessingTurnCnt),
-		TerminatedTurnCnt: int32(stats.TerminatedTurnCnt),
+		SuccessItemCnt:    int32(stats.SuccessItemCnt),
+		PendingItemCnt:    int32(stats.PendingItemCnt),
+		FailItemCnt:       int32(stats.FailItemCnt),
+		ProcessingItemCnt: int32(stats.ProcessingItemCnt),
+		TerminatedItemCnt: int32(stats.TerminatedItemCnt),
 	}
 
 	if err := e.statsRepo.UpdateByExptID(ctx, exptID, spaceID, exptStats); err != nil {

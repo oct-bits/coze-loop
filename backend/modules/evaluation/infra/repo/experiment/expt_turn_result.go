@@ -261,6 +261,21 @@ func (r *ExptTurnResultRepoImpl) ListTurnResult(ctx context.Context, spaceID, ex
 	return exptTurnResults, total, nil
 }
 
+// nolint: byted_s_too_many_lines_in_func
+func (r *ExptTurnResultRepoImpl) ListTurnResultByItemIDs(ctx context.Context, spaceID, exptID int64, itemIDs []int64, page entity.Page, desc bool) ([]*entity.ExptTurnResult, int64, error) {
+	exptTurnResultPOs, total, err := r.exptTurnResultDAO.ListTurnResultByItemIDs(ctx, spaceID, exptID, itemIDs, page, desc)
+	if err != nil {
+		return nil, 0, errorx.Wrapf(err, "ListTurnResult fail, spaceID: %v, exptID: %v, itemIDs: %v", spaceID, exptID, itemIDs)
+	}
+
+	exptTurnResults := make([]*entity.ExptTurnResult, 0, len(exptTurnResultPOs))
+	for _, exptTurnResultPO := range exptTurnResultPOs {
+		exptTurnResult := convert.NewExptTurnResultConvertor().PO2DO(exptTurnResultPO, nil)
+		exptTurnResults = append(exptTurnResults, exptTurnResult)
+	}
+	return exptTurnResults, total, nil
+}
+
 func (e *ExptTurnResultRepoImpl) BatchGetTurnEvaluatorResultRef(ctx context.Context, spaceID int64, exptTurnResultIDs []int64) ([]*entity.ExptTurnEvaluatorResultRef, error) {
 	pos, err := e.exptTurnEvaluatorResultRefDAO.BatchGet(ctx, spaceID, exptTurnResultIDs)
 	if err != nil {

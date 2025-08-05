@@ -144,6 +144,7 @@ func InitEvaluationHandler(
 	ctx context.Context,
 	idgen idgen.IIDGenerator,
 	db db.Provider,
+	ckDb ck.Provider,
 	cmdable redis.Cmdable,
 	configFactory conf.IConfigLoaderFactory,
 	mqFactory mq.IFactory,
