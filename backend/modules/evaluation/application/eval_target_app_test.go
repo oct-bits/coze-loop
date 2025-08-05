@@ -853,6 +853,14 @@ func TestEvalTargetApplicationImpl_ListSourceEvalTargetVersions(t *testing.T) {
 				PromptID: 789,
 				Version:  "v2.0",
 			},
+		}, {
+			ID:             2,
+			SpaceID:        validSpaceID,
+			EvalTargetType: 4,
+			Prompt: &entity.LoopPrompt{
+				PromptID: 789,
+				Version:  "v2.0",
+			},
 		},
 	}
 
@@ -893,12 +901,17 @@ func TestEvalTargetApplicationImpl_ListSourceEvalTargetVersions(t *testing.T) {
 							PromptID: 789,
 							Version:  "v2.0",
 						},
+					}, {
+						ID:             2,
+						SpaceID:        validSpaceID,
+						EvalTargetType: 4,
 					}}, "", false, nil)
 			},
 			wantResp: &eval_target.ListSourceEvalTargetVersionsResponse{
 				Versions: []*domain_eval_target.EvalTargetVersion{
 					target.EvalTargetVersionDO2DTO(validEvalTargets[0]),
 					target.EvalTargetVersionDO2DTO(validEvalTargets[1]),
+					target.EvalTargetVersionDO2DTO(validEvalTargets[2]),
 				},
 			},
 			wantErr: false,

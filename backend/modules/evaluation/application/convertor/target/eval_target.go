@@ -149,6 +149,11 @@ func EvalTargetVersionDO2DTO(targetVersionDO *do.EvalTargetVersion) (targetVersi
 				Description:  &targetVersionDO.Prompt.Description,
 			}
 		}
+	default:
+		targetVersionDTO.EvalTargetContent = &dto.EvalTargetContent{
+			InputSchemas:  make([]*commondto.ArgsSchema, 0),
+			OutputSchemas: make([]*commondto.ArgsSchema, 0),
+		}
 	}
 	for _, v := range targetVersionDO.InputSchema {
 		targetVersionDTO.EvalTargetContent.InputSchemas = append(targetVersionDTO.EvalTargetContent.InputSchemas, commonconvertor.ConvertArgsSchemaDO2DTO(v))
