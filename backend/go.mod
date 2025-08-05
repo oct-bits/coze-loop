@@ -89,7 +89,7 @@ require (
 	gorm.io/plugin/soft_delete v1.2.1
 )
 
-require github.com/ohler55/ojg v1.26.6 // indirect
+require github.com/ohler55/ojg v1.26.6
 
 require (
 	cloud.google.com/go v0.116.0 // indirect

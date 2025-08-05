@@ -10,9 +10,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
+	"github.com/coze-dev/coze-loop/backend/pkg/logs"
 	"github.com/bytedance/sonic"
 	"github.com/samber/lo"
-	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 )
 
 const (
@@ -309,16 +310,17 @@ func (s *Span) GetTenant() string {
 	return s.SystemTagsString[SpanFieldTenant]
 }
 
-func (s *Span) GetTTL() TTL {
-	logicDeleteDate := s.SystemTagsLong[SpanFieldLogicDeleteDate]
+func (s *Span) GetTTL(ctx context.Context) TTL {
 	tStart := time.UnixMicro(s.StartTime)
-	tEnd := time.UnixMicro(logicDeleteDate)
+	tEnd := time.UnixMicro(s.LogicDeleteTime)
 	if s.DurationMicros > 0 {
 		tStart = time.UnixMicro(s.StartTime + s.DurationMicros)
 	}
 	duration := tEnd.Sub(tStart)
 	days := int64(duration.Hours() / 24)
-	return TTLFromInteger(days)
+	ttl := TTLFromInteger(days)
+	logs.CtxInfo(ctx, "get ttl for span_id %s is %s", s.SpanID, ttl)
+	return ttl
 }
 
 func (s *Span) BuildFeedback(t AnnotationType, key string, value AnnotationValue, reasoning, userID string, deleted bool) (*Annotation, error) {
@@ -562,21 +564,18 @@ func (s SpanList) Uniq() SpanList {
 }
 
 func TTLFromInteger(i int64) TTL {
-	switch i {
-	case 3:
+	if i <= 4 {
 		return TTL3d
-	case 7:
+	} else if i <= 8 {
 		return TTL7d
-	case 30:
+	} else if i <= 31 {
 		return TTL30d
-	case 90:
+	} else if i <= 91 {
 		return TTL90d
-	case 180:
+	} else if i <= 181 {
 		return TTL180d
-	case 365:
+	} else {
 		return TTL365d
-	default:
-		return TTL3d
 	}
 }
 

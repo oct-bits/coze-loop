@@ -104,4 +104,19 @@ func TestSpan(t *testing.T) {
 	assert.Equal(t, TTLFromInteger(90), TTL90d)
 	assert.Equal(t, TTLFromInteger(180), TTL180d)
 	assert.Equal(t, TTLFromInteger(365), TTL365d)
+
+	ctx := context.Background()
+	span = &Span{
+		StartTime:       time.Now().Add(-24 * time.Hour).UnixMicro(),
+		LogicDeleteTime: time.Now().Add(24 * 7 * time.Hour).UnixMicro(),
+	}
+	assert.Equal(t, span.GetTTL(ctx), TTL7d)
+	span.LogicDeleteTime = time.Now().Add(24 * 30 * time.Hour).UnixMicro()
+	assert.Equal(t, span.GetTTL(ctx), TTL30d)
+	span.LogicDeleteTime = time.Now().Add(24 * 90 * time.Hour).UnixMicro()
+	assert.Equal(t, span.GetTTL(ctx), TTL90d)
+	span.LogicDeleteTime = time.Now().Add(24 * 180 * time.Hour).UnixMicro()
+	assert.Equal(t, span.GetTTL(ctx), TTL180d)
+	span.LogicDeleteTime = time.Now().Add(24 * 365 * time.Hour).UnixMicro()
+	assert.Equal(t, span.GetTTL(ctx), TTL365d)
 }

@@ -458,7 +458,7 @@ func (r *TraceServiceImpl) CreateManualAnnotation(ctx context.Context, req *Crea
 	}
 	if err := r.traceRepo.InsertAnnotation(ctx, &repo.InsertAnnotationParam{
 		Tenant:     span.GetTenant(),
-		TTL:        span.GetTTL(),
+		TTL:        span.GetTTL(ctx),
 		Annotation: annotation,
 	}); err != nil {
 		return nil, err
@@ -514,7 +514,7 @@ func (r *TraceServiceImpl) UpdateManualAnnotation(ctx context.Context, req *Upda
 	}
 	return r.traceRepo.InsertAnnotation(ctx, &repo.InsertAnnotationParam{
 		Tenant:     span.GetTenant(),
-		TTL:        span.GetTTL(),
+		TTL:        span.GetTTL(ctx),
 		Annotation: annotation,
 	})
 }
@@ -551,7 +551,7 @@ func (r *TraceServiceImpl) DeleteManualAnnotation(ctx context.Context, req *Dele
 	}
 	return r.traceRepo.InsertAnnotation(ctx, &repo.InsertAnnotationParam{
 		Tenant:     span.GetTenant(),
-		TTL:        span.GetTTL(),
+		TTL:        span.GetTTL(ctx),
 		Annotation: annotation,
 	})
 }
@@ -614,7 +614,7 @@ func (r *TraceServiceImpl) CreateAnnotation(ctx context.Context, req *CreateAnno
 	}
 	return r.traceRepo.InsertAnnotation(ctx, &repo.InsertAnnotationParam{
 		Tenant:     span.GetTenant(),
-		TTL:        span.GetTTL(),
+		TTL:        span.GetTTL(ctx),
 		Annotation: annotation,
 	})
 }
@@ -664,7 +664,7 @@ func (r *TraceServiceImpl) DeleteAnnotation(ctx context.Context, req *DeleteAnno
 	}
 	return r.traceRepo.InsertAnnotation(ctx, &repo.InsertAnnotationParam{
 		Tenant:     span.GetTenant(),
-		TTL:        span.GetTTL(),
+		TTL:        span.GetTTL(ctx),
 		Annotation: annotation,
 	})
 }
@@ -704,7 +704,7 @@ func (r *TraceServiceImpl) Send(ctx context.Context, event *entity.AnnotationEve
 	// retry if failed
 	return r.traceRepo.InsertAnnotation(ctx, &repo.InsertAnnotationParam{
 		Tenant:     span.GetTenant(),
-		TTL:        span.GetTTL(),
+		TTL:        span.GetTTL(ctx),
 		Annotation: event.Annotation,
 	})
 }
