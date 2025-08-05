@@ -62,7 +62,7 @@ func NewExperimentApplication(
 	manager service.IExptManager,
 	scheduler service.ExptSchedulerEvent,
 	recordEval service.ExptItemEvalEvent,
-	// tupleSvc service.IExptTupleService,
+// tupleSvc service.IExptTupleService,
 	idgen idgen.IIDGenerator,
 	configer component.IConfiger,
 	auth rpc.IAuthProvider,
@@ -117,13 +117,6 @@ func (e *experimentApplication) SubmitExperiment(ctx context.Context, req *expt.
 	logs.CtxInfo(ctx, "SubmitExperiment req: %v", json.Jsonify(req))
 	if hasDuplicates(req.EvaluatorVersionIds) {
 		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("duplicate evaluator version ids"))
-	}
-	if err := e.auth.Authorization(ctx, &rpc.AuthorizationParam{
-		ObjectID:      strconv.FormatInt(req.GetWorkspaceID(), 10),
-		SpaceID:       req.GetWorkspaceID(),
-		ActionObjects: []*rpc.ActionObject{{Action: gptr.Of(consts.ActionCreateExpt), EntityType: gptr.Of(rpc.AuthEntityType_Space)}},
-	}); err != nil {
-		return nil, err
 	}
 
 	cresp, err := e.CreateExperiment(ctx, &expt.CreateExperimentRequest{
