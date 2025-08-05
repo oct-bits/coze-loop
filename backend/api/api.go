@@ -8,7 +8,6 @@ package api
 import (
 	"context"
 
-	"github.com/coze-dev/coze-loop/backend/loop_gen/coze/loop/data/lotag"
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/app/server/binding"
 	"github.com/cloudwego/hertz/pkg/app/server/render"
@@ -27,6 +26,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/infra/mq"
 	"github.com/coze-dev/coze-loop/backend/infra/redis"
 	"github.com/coze-dev/coze-loop/backend/loop_gen/coze/loop/data/lodataset"
+	"github.com/coze-dev/coze-loop/backend/loop_gen/coze/loop/data/lotag"
 	"github.com/coze-dev/coze-loop/backend/loop_gen/coze/loop/evaluation/loevaluator"
 	"github.com/coze-dev/coze-loop/backend/loop_gen/coze/loop/foundation/loauth"
 	"github.com/coze-dev/coze-loop/backend/loop_gen/coze/loop/foundation/lofile"
@@ -64,7 +64,7 @@ func Init(
 		return nil, err
 	}
 
-	promptHandler, err := apis.InitPromptHandler(ctx, idgen, db, cmdable, configFactory, limiterFactory, benefitSvc,
+	promptHandler, err := apis.InitPromptHandler(ctx, idgen, db, cmdable, meter, configFactory, limiterFactory, benefitSvc,
 		loruntime.NewLocalLLMRuntimeService(llmHandler.LLMRuntimeService),
 		loauth.NewLocalAuthService(foundationHandler.AuthService),
 		lofile.NewLocalFileService(foundationHandler.FileService),

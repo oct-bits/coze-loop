@@ -6,6 +6,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"golang.org/x/exp/maps"
@@ -50,6 +51,9 @@ type PromptOpenAPIApplicationImpl struct {
 
 func (p *PromptOpenAPIApplicationImpl) BatchGetPromptByPromptKey(ctx context.Context, req *openapi.BatchGetPromptByPromptKeyRequest) (r *openapi.BatchGetPromptByPromptKeyResponse, err error) {
 	r = openapi.NewBatchGetPromptByPromptKeyResponse()
+	if req.GetWorkspaceID() == 0 {
+		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtra(map[string]string{"invalid_param": "workspace_id参数为空"}))
+	}
 	defer func() {
 		if err != nil {
 			logs.CtxError(ctx, "openapi get prompts failed, err=%v", err)
@@ -115,6 +119,16 @@ func (p *PromptOpenAPIApplicationImpl) fetchPromptResults(ctx context.Context, r
 	// 获取prompt详细信息
 	prompts, err := p.promptManageRepo.MGetPrompt(ctx, mgetParams, repo.WithPromptCacheEnable())
 	if err != nil {
+		if bizErr, ok := errorx.FromStatusError(err); ok && bizErr.Code() == prompterr.PromptVersionNotExistCode {
+			extra := bizErr.Extra()
+			for promptKey, promptID := range promptKeyIDMap {
+				if extra["prompt_id"] == strconv.FormatInt(promptID, 10) {
+					extra["prompt_key"] = promptKey
+					break
+				}
+			}
+			bizErr.WithExtra(extra)
+		}
 		return nil, err
 	}
 
@@ -139,7 +153,9 @@ func (p *PromptOpenAPIApplicationImpl) fetchPromptResults(ctx context.Context, r
 		commitVersion := promptKeyCommitVersionMap[service.PromptKeyVersionPair{PromptKey: q.GetPromptKey(), Version: q.GetVersion()}]
 		promptDTO := convertor.OpenAPIPromptDO2DTO(promptMap[service.PromptKeyVersionPair{PromptKey: q.GetPromptKey(), Version: commitVersion}])
 		if promptDTO == nil {
-			return nil, errorx.NewByCode(prompterr.PromptVersionNotExistCode, errorx.WithExtraMsg("prompt version not exist"))
+			return nil, errorx.NewByCode(prompterr.PromptVersionNotExistCode,
+				errorx.WithExtraMsg("prompt version not exist"),
+				errorx.WithExtra(map[string]string{"prompt_key": q.GetPromptKey(), "version": q.GetVersion()}))
 		}
 
 		r.Data.Items = append(r.Data.Items, &openapi.PromptResult_{

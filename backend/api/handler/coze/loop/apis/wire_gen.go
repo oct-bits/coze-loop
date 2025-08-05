@@ -80,20 +80,20 @@ var (
 	_wireValue = []endpoint.Middleware(nil)
 )
 
-func InitPromptHandler(ctx context.Context, idgen2 idgen.IIDGenerator, db2 db.Provider, redisCli redis.Cmdable, configFactory conf.IConfigLoaderFactory, limiterFactory limiter.IRateLimiterFactory, benefitSvc benefit.IBenefitService, llmClient llmruntimeservice.Client, authClient authservice.Client, fileClient fileservice.Client, userClient userservice.Client, auditClient audit.IAuditService) (*PromptHandler, error) {
-	promptManageService, err := application2.InitPromptManageApplication(idgen2, db2, redisCli, configFactory, llmClient, authClient, fileClient, userClient, auditClient)
+func InitPromptHandler(ctx context.Context, idgen2 idgen.IIDGenerator, db2 db.Provider, redisCli redis.Cmdable, meter metrics.Meter, configFactory conf.IConfigLoaderFactory, limiterFactory limiter.IRateLimiterFactory, benefitSvc benefit.IBenefitService, llmClient llmruntimeservice.Client, authClient authservice.Client, fileClient fileservice.Client, userClient userservice.Client, auditClient audit.IAuditService) (*PromptHandler, error) {
+	promptManageService, err := application2.InitPromptManageApplication(idgen2, db2, redisCli, meter, configFactory, llmClient, authClient, fileClient, userClient, auditClient)
 	if err != nil {
 		return nil, err
 	}
-	promptDebugService, err := application2.InitPromptDebugApplication(idgen2, db2, redisCli, configFactory, llmClient, authClient, fileClient, benefitSvc)
+	promptDebugService, err := application2.InitPromptDebugApplication(idgen2, db2, redisCli, meter, configFactory, llmClient, authClient, fileClient, benefitSvc)
 	if err != nil {
 		return nil, err
 	}
-	promptExecuteService, err := application2.InitPromptExecuteApplication(idgen2, db2, redisCli, configFactory, llmClient, fileClient)
+	promptExecuteService, err := application2.InitPromptExecuteApplication(idgen2, db2, redisCli, meter, configFactory, llmClient, fileClient)
 	if err != nil {
 		return nil, err
 	}
-	promptOpenAPIService, err := application2.InitPromptOpenAPIApplication(idgen2, db2, redisCli, configFactory, limiterFactory, llmClient, authClient, fileClient)
+	promptOpenAPIService, err := application2.InitPromptOpenAPIApplication(idgen2, db2, redisCli, meter, configFactory, limiterFactory, llmClient, authClient, fileClient)
 	if err != nil {
 		return nil, err
 	}

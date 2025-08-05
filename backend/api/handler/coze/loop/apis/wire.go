@@ -109,6 +109,7 @@ func InitPromptHandler(
 	idgen idgen.IIDGenerator,
 	db db.Provider,
 	redisCli redis.Cmdable,
+	meter metrics.Meter,
 	configFactory conf.IConfigLoaderFactory,
 	limiterFactory limiter.IRateLimiterFactory,
 	benefitSvc benefit.IBenefitService,

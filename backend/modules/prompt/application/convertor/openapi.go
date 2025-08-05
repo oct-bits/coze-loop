@@ -96,7 +96,7 @@ func OpenAPIVariableDefDO2DTO(do *entity.VariableDef) *openapi.VariableDef {
 }
 
 func OpenAPIBatchToolDO2DTO(dos []*entity.Tool) []*openapi.Tool {
-	if len(dos) == 0 {
+	if dos == nil {
 		return nil
 	}
 	dtos := make([]*openapi.Tool, 0, len(dos))

@@ -707,6 +707,97 @@ func TestPromptOpenAPIApplicationImpl_BatchGetPromptByPromptKey(t *testing.T) {
 			wantR:   nil,
 			wantErr: errorx.NewByCode(prompterr.PromptVersionNotExistCode, errorx.WithExtraMsg("prompt version not exist")),
 		},
+		{
+			name: "workspace_id is empty",
+			fieldsGetter: func(ctrl *gomock.Controller) fields {
+				return fields{}
+			},
+			args: args{
+				ctx: context.Background(),
+				req: &openapi.BatchGetPromptByPromptKeyRequest{
+					WorkspaceID: ptr.Of(int64(0)),
+					Queries: []*openapi.PromptQuery{
+						{
+							PromptKey: ptr.Of("test_prompt1"),
+							Version:   ptr.Of("1.0.0"),
+						},
+					},
+				},
+			},
+			wantR:   openapi.NewBatchGetPromptByPromptKeyResponse(),
+			wantErr: errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtra(map[string]string{"invalid_param": "workspace_id参数为空"})),
+		},
+		{
+			name: "workspace_id is nil",
+			fieldsGetter: func(ctrl *gomock.Controller) fields {
+				return fields{}
+			},
+			args: args{
+				ctx: context.Background(),
+				req: &openapi.BatchGetPromptByPromptKeyRequest{
+					WorkspaceID: nil,
+					Queries: []*openapi.PromptQuery{
+						{
+							PromptKey: ptr.Of("test_prompt1"),
+							Version:   ptr.Of("1.0.0"),
+						},
+					},
+				},
+			},
+			wantR:   openapi.NewBatchGetPromptByPromptKeyResponse(),
+			wantErr: errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtra(map[string]string{"invalid_param": "workspace_id参数为空"})),
+		},
+		{
+			name: "enhanced error info with prompt_key",
+			fieldsGetter: func(ctrl *gomock.Controller) fields {
+				mockPromptService := servicemocks.NewMockIPromptService(ctrl)
+				mockPromptService.EXPECT().MGetPromptIDs(gomock.Any(), gomock.Any(), gomock.Any()).Return(map[string]int64{
+					"test_prompt1": 123,
+				}, nil)
+				mockPromptService.EXPECT().MParseCommitVersion(gomock.Any(), gomock.Any(), gomock.Any()).Return(map[service.PromptKeyVersionPair]string{
+					{PromptKey: "test_prompt1", Version: "1.0.0"}: "1.0.0",
+				}, nil)
+
+				mockManageRepo := repomocks.NewMockIManageRepo(ctrl)
+				mockManageRepo.EXPECT().MGetPrompt(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 
+					errorx.NewByCode(prompterr.PromptVersionNotExistCode, 
+						errorx.WithExtra(map[string]string{"prompt_id": "123"})))
+
+				mockConfig := confmocks.NewMockIConfigProvider(ctrl)
+				mockConfig.EXPECT().GetPromptHubMaxQPSBySpace(gomock.Any(), gomock.Any()).Return(100, nil)
+
+				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().MCheckPromptPermission(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+
+				mockRateLimiter := limitermocks.NewMockIRateLimiter(ctrl)
+				mockRateLimiter.EXPECT().AllowN(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&limiter.Result{
+					Allowed: true,
+				}, nil)
+
+				return fields{
+					promptService:    mockPromptService,
+					promptManageRepo: mockManageRepo,
+					config:           mockConfig,
+					auth:             mockAuth,
+					rateLimiter:      mockRateLimiter,
+				}
+			},
+			args: args{
+				ctx: context.Background(),
+				req: &openapi.BatchGetPromptByPromptKeyRequest{
+					WorkspaceID: ptr.Of(int64(123456)),
+					Queries: []*openapi.PromptQuery{
+						{
+							PromptKey: ptr.Of("test_prompt1"),
+							Version:   ptr.Of("1.0.0"),
+						},
+					},
+				},
+			},
+			wantR: nil,
+			wantErr: errorx.NewByCode(prompterr.PromptVersionNotExistCode, 
+				errorx.WithExtra(map[string]string{"prompt_id": "123", "prompt_key": "test_prompt1"})),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

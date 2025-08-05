@@ -12,6 +12,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/infra/external/benefit"
 	"github.com/coze-dev/coze-loop/backend/infra/idgen"
 	"github.com/coze-dev/coze-loop/backend/infra/limiter"
+	"github.com/coze-dev/coze-loop/backend/infra/metrics"
 	"github.com/coze-dev/coze-loop/backend/infra/redis"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/foundation/auth/authservice"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/foundation/file/fileservice"
@@ -33,13 +34,13 @@ import (
 
 // Injectors from wire.go:
 
-func InitPromptManageApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redisCli redis.Cmdable, configFactory conf.IConfigLoaderFactory, llmClient llmruntimeservice.Client, authClient authservice.Client, fileClient fileservice.Client, userClient userservice.Client, auditClient audit.IAuditService) (manage.PromptManageService, error) {
+func InitPromptManageApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redisCli redis.Cmdable, meter metrics.Meter, configFactory conf.IConfigLoaderFactory, llmClient llmruntimeservice.Client, authClient authservice.Client, fileClient fileservice.Client, userClient userservice.Client, auditClient audit.IAuditService) (manage.PromptManageService, error) {
 	iPromptBasicDAO := mysql.NewPromptBasicDAO(db2, redisCli)
 	iPromptCommitDAO := mysql.NewPromptCommitDAO(db2, redisCli)
 	iPromptUserDraftDAO := mysql.NewPromptUserDraftDAO(db2, redisCli)
 	redisIPromptBasicDAO := redis2.NewPromptBasicDAO()
 	iPromptDAO := redis2.NewPromptDAO()
-	iManageRepo := repo.NewManageRepo(db2, idgen2, iPromptBasicDAO, iPromptCommitDAO, iPromptUserDraftDAO, redisIPromptBasicDAO, iPromptDAO)
+	iManageRepo := repo.NewManageRepo(db2, idgen2, meter, iPromptBasicDAO, iPromptCommitDAO, iPromptUserDraftDAO, redisIPromptBasicDAO, iPromptDAO)
 	iDebugLogDAO := mysql.NewDebugLogDAO(db2)
 	iDebugLogRepo := repo.NewDebugLogRepo(idgen2, iDebugLogDAO)
 	iDebugContextDAO := mysql.NewDebugContextDAO(db2)
@@ -54,11 +55,11 @@ func InitPromptManageApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, red
 	iAuthProvider := rpc.NewAuthRPCProvider(authClient)
 	iUserProvider := rpc.NewUserRPCProvider(userClient)
 	iAuditProvider := rpc.NewAuditRPCProvider(auditClient)
-	promptManageService := NewPromptManageApplication(iManageRepo, iPromptService, iAuthProvider, iUserProvider, iAuditProvider)
+	promptManageService := NewPromptManageApplication(iManageRepo, iPromptService, iAuthProvider, iUserProvider, iAuditProvider, iConfigProvider)
 	return promptManageService, nil
 }
 
-func InitPromptDebugApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redisCli redis.Cmdable, configFactory conf.IConfigLoaderFactory, llmClient llmruntimeservice.Client, authClient authservice.Client, fileClient fileservice.Client, benefitSvc benefit.IBenefitService) (debug.PromptDebugService, error) {
+func InitPromptDebugApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redisCli redis.Cmdable, meter metrics.Meter, configFactory conf.IConfigLoaderFactory, llmClient llmruntimeservice.Client, authClient authservice.Client, fileClient fileservice.Client, benefitSvc benefit.IBenefitService) (debug.PromptDebugService, error) {
 	iDebugLogDAO := mysql.NewDebugLogDAO(db2)
 	iDebugLogRepo := repo.NewDebugLogRepo(idgen2, iDebugLogDAO)
 	iDebugContextDAO := mysql.NewDebugContextDAO(db2)
@@ -68,7 +69,7 @@ func InitPromptDebugApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redi
 	iPromptUserDraftDAO := mysql.NewPromptUserDraftDAO(db2, redisCli)
 	redisIPromptBasicDAO := redis2.NewPromptBasicDAO()
 	iPromptDAO := redis2.NewPromptDAO()
-	iManageRepo := repo.NewManageRepo(db2, idgen2, iPromptBasicDAO, iPromptCommitDAO, iPromptUserDraftDAO, redisIPromptBasicDAO, iPromptDAO)
+	iManageRepo := repo.NewManageRepo(db2, idgen2, meter, iPromptBasicDAO, iPromptCommitDAO, iPromptUserDraftDAO, redisIPromptBasicDAO, iPromptDAO)
 	iConfigProvider, err := conf2.NewPromptConfigProvider(configFactory)
 	if err != nil {
 		return nil, err
@@ -81,7 +82,7 @@ func InitPromptDebugApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redi
 	return promptDebugService, nil
 }
 
-func InitPromptExecuteApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redisCli redis.Cmdable, configFactory conf.IConfigLoaderFactory, llmClient llmruntimeservice.Client, fileClient fileservice.Client) (execute.PromptExecuteService, error) {
+func InitPromptExecuteApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redisCli redis.Cmdable, meter metrics.Meter, configFactory conf.IConfigLoaderFactory, llmClient llmruntimeservice.Client, fileClient fileservice.Client) (execute.PromptExecuteService, error) {
 	iDebugLogDAO := mysql.NewDebugLogDAO(db2)
 	iDebugLogRepo := repo.NewDebugLogRepo(idgen2, iDebugLogDAO)
 	iDebugContextDAO := mysql.NewDebugContextDAO(db2)
@@ -91,7 +92,7 @@ func InitPromptExecuteApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, re
 	iPromptUserDraftDAO := mysql.NewPromptUserDraftDAO(db2, redisCli)
 	redisIPromptBasicDAO := redis2.NewPromptBasicDAO()
 	iPromptDAO := redis2.NewPromptDAO()
-	iManageRepo := repo.NewManageRepo(db2, idgen2, iPromptBasicDAO, iPromptCommitDAO, iPromptUserDraftDAO, redisIPromptBasicDAO, iPromptDAO)
+	iManageRepo := repo.NewManageRepo(db2, idgen2, meter, iPromptBasicDAO, iPromptCommitDAO, iPromptUserDraftDAO, redisIPromptBasicDAO, iPromptDAO)
 	iConfigProvider, err := conf2.NewPromptConfigProvider(configFactory)
 	if err != nil {
 		return nil, err
@@ -103,7 +104,7 @@ func InitPromptExecuteApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, re
 	return promptExecuteService, nil
 }
 
-func InitPromptOpenAPIApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redisCli redis.Cmdable, configFactory conf.IConfigLoaderFactory, limiterFactory limiter.IRateLimiterFactory, llmClient llmruntimeservice.Client, authClient authservice.Client, fileClient fileservice.Client) (openapi.PromptOpenAPIService, error) {
+func InitPromptOpenAPIApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redisCli redis.Cmdable, meter metrics.Meter, configFactory conf.IConfigLoaderFactory, limiterFactory limiter.IRateLimiterFactory, llmClient llmruntimeservice.Client, authClient authservice.Client, fileClient fileservice.Client) (openapi.PromptOpenAPIService, error) {
 	iDebugLogDAO := mysql.NewDebugLogDAO(db2)
 	iDebugLogRepo := repo.NewDebugLogRepo(idgen2, iDebugLogDAO)
 	iDebugContextDAO := mysql.NewDebugContextDAO(db2)
@@ -113,7 +114,7 @@ func InitPromptOpenAPIApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, re
 	iPromptUserDraftDAO := mysql.NewPromptUserDraftDAO(db2, redisCli)
 	redisIPromptBasicDAO := redis2.NewPromptBasicDAO()
 	iPromptDAO := redis2.NewPromptDAO()
-	iManageRepo := repo.NewManageRepo(db2, idgen2, iPromptBasicDAO, iPromptCommitDAO, iPromptUserDraftDAO, redisIPromptBasicDAO, iPromptDAO)
+	iManageRepo := repo.NewManageRepo(db2, idgen2, meter, iPromptBasicDAO, iPromptCommitDAO, iPromptUserDraftDAO, redisIPromptBasicDAO, iPromptDAO)
 	iConfigProvider, err := conf2.NewPromptConfigProvider(configFactory)
 	if err != nil {
 		return nil, err
