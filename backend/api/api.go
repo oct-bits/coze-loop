@@ -8,6 +8,7 @@ package api
 import (
 	"context"
 
+	"github.com/coze-dev/coze-loop/backend/loop_gen/coze/loop/data/lotag"
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/app/server/binding"
 	"github.com/cloudwego/hertz/pkg/app/server/render"
@@ -26,6 +27,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/infra/mq"
 	"github.com/coze-dev/coze-loop/backend/infra/redis"
 	"github.com/coze-dev/coze-loop/backend/loop_gen/coze/loop/data/lodataset"
+	"github.com/coze-dev/coze-loop/backend/loop_gen/coze/loop/evaluation/loevaluator"
 	"github.com/coze-dev/coze-loop/backend/loop_gen/coze/loop/foundation/loauth"
 	"github.com/coze-dev/coze-loop/backend/loop_gen/coze/loop/foundation/lofile"
 	"github.com/coze-dev/coze-loop/backend/loop_gen/coze/loop/foundation/louser"
@@ -62,15 +64,6 @@ func Init(
 		return nil, err
 	}
 
-	observabilityHandler, err := apis.InitObservabilityHandler(ctx, db, ckDB, meter, mqFactory, configFactory, benefitSvc,
-		lofile.NewLocalFileService(foundationHandler.FileService),
-		loauth.NewLocalAuthService(foundationHandler.AuthService),
-	)
-	if err != nil {
-		return nil, err
-	}
-	observabilityHandler.RunAsync(ctx)
-
 	promptHandler, err := apis.InitPromptHandler(ctx, idgen, db, cmdable, configFactory, limiterFactory, benefitSvc,
 		loruntime.NewLocalLLMRuntimeService(llmHandler.LLMRuntimeService),
 		loauth.NewLocalAuthService(foundationHandler.AuthService),
@@ -82,8 +75,11 @@ func Init(
 		return nil, err
 	}
 
-	dataHandler, err := apis.InitDataHandler(ctx, idgen, db, cmdable, configFactory, mqFactory, objectStorage, batchObjectStorage,
-		auditClient, loauth.NewLocalAuthService(foundationHandler.AuthService))
+	dataHandler, err := apis.InitDataHandler(ctx, idgen, db, cmdable, configFactory, mqFactory,
+		objectStorage, batchObjectStorage, auditClient,
+		loauth.NewLocalAuthService(foundationHandler.AuthService),
+		louser.NewLocalUserService(foundationHandler.UserService),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -104,6 +100,18 @@ func Init(
 	if err != nil {
 		return nil, err
 	}
+
+	observabilityHandler, err := apis.InitObservabilityHandler(ctx, db, ckDB, meter, mqFactory, configFactory, benefitSvc,
+		lofile.NewLocalFileService(foundationHandler.FileService),
+		loauth.NewLocalAuthService(foundationHandler.AuthService),
+		louser.NewLocalUserService(foundationHandler.UserService),
+		loevaluator.NewLocalEvaluatorService(evaluationHandler.EvaluatorService),
+		lotag.NewLocalTagService(dataHandler.TagService),
+	)
+	if err != nil {
+		return nil, err
+	}
+	observabilityHandler.ITraceIngestionApplication.RunAsync(ctx)
 
 	return &apis.APIHandler{
 		PromptHandler:        promptHandler,

@@ -1,11 +1,12 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
 
-package mq
+package producer
 
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/coze-dev/coze-loop/backend/infra/mq"
@@ -24,6 +25,11 @@ const (
 	maxBatchSize = 1024 * 1024 * 10
 )
 
+var (
+	traceProducerOnce      sync.Once
+	singletonTraceProducer mq2.ITraceProducer
+)
+
 type TraceProducerImpl struct {
 	traceTopic string
 	mqProducer mq.IProducer
@@ -32,7 +38,7 @@ type TraceProducerImpl struct {
 func (t *TraceProducerImpl) IngestSpans(ctx context.Context, td *entity.TraceData) error {
 	payload, err := json.Marshal(td)
 	if err != nil {
-		return errorx.NewByCode(obErrorx.CommercialCommonInternalErrorCodeCode, errorx.WithExtraMsg("trace data marshal failed"))
+		return errorx.WrapByCode(err, obErrorx.CommercialCommonInternalErrorCodeCode, errorx.WithExtraMsg("trace data marshal failed"))
 	}
 	if len(payload) > maxBatchSize {
 		if len(td.SpanList) == 1 {
@@ -54,13 +60,25 @@ func (t *TraceProducerImpl) IngestSpans(ctx context.Context, td *entity.TraceDat
 				logs.CtxWarn(ctx, "mq send error: %v", err)
 			}
 		}, msg); err != nil {
-			return errorx.NewByCode(obErrorx.CommercialCommonRPCErrorCodeCode)
+			return errorx.WrapByCode(err, obErrorx.CommercialCommonRPCErrorCodeCode)
 		}
 	}
 	return nil
 }
 
 func NewTraceProducerImpl(traceConfig config.ITraceConfig, mqFactory mq.IFactory) (mq2.ITraceProducer, error) {
+	var err error
+	traceProducerOnce.Do(func() {
+		singletonTraceProducer, err = newTraceProducerImpl(traceConfig, mqFactory)
+	})
+	if err != nil {
+		return nil, err
+	} else {
+		return singletonTraceProducer, nil
+	}
+}
+
+func newTraceProducerImpl(traceConfig config.ITraceConfig, mqFactory mq.IFactory) (mq2.ITraceProducer, error) {
 	mqCfg, err := traceConfig.GetTraceMqProducerCfg(context.Background())
 	if err != nil {
 		return nil, err

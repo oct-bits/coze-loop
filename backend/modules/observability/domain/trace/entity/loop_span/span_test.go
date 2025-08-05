@@ -97,4 +97,11 @@ func TestSpan(t *testing.T) {
 	in, out, _ := span.getTokens(context.Background())
 	assert.Equal(t, in, int64(10))
 	assert.Equal(t, out, int64(20))
+	assert.Equal(t, TTLFromInteger(4), TTL3d)
+	assert.Equal(t, TTLFromInteger(3), TTL3d)
+	assert.Equal(t, TTLFromInteger(7), TTL7d)
+	assert.Equal(t, TTLFromInteger(30), TTL30d)
+	assert.Equal(t, TTLFromInteger(90), TTL90d)
+	assert.Equal(t, TTLFromInteger(180), TTL180d)
+	assert.Equal(t, TTLFromInteger(365), TTL365d)
 }

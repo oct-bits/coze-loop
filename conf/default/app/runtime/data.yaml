@@ -31,3 +31,8 @@ snapshot_retry:
   max_retry_times: 10
   retry_interval_ms: 10000
   max_processing_time_s: 600
+
+default_tag_spec:
+  default_spec:
+    max_height: 1
+    max_width: 20

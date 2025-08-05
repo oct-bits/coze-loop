@@ -14,6 +14,7 @@ import (
 	obErrorx "github.com/coze-dev/coze-loop/backend/modules/observability/pkg/errno"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
+	"github.com/coze-dev/coze-loop/backend/pkg/logs"
 )
 
 type AuthProviderImpl struct {
@@ -50,10 +51,12 @@ func (a *AuthProviderImpl) CheckWorkspacePermission(ctx context.Context, action,
 	}
 	resp, err := a.cli.MCheckPermission(ctx, req)
 	if err != nil {
-		return errorx.NewByCode(obErrorx.CommercialCommonRPCErrorCodeCode)
+		return errorx.WrapByCode(err, obErrorx.CommercialCommonRPCErrorCodeCode)
 	} else if resp == nil {
+		logs.CtxWarn(ctx, "MCheckPermission returned nil response")
 		return errorx.NewByCode(obErrorx.CommercialCommonRPCErrorCodeCode)
 	} else if resp.BaseResp != nil && resp.BaseResp.StatusCode != 0 {
+		logs.CtxWarn(ctx, "MCheckPermission returned non-zero status code %d", resp.BaseResp.StatusCode)
 		return errorx.NewByCode(obErrorx.CommercialCommonRPCErrorCodeCode)
 	}
 	for _, r := range resp.AuthRes {
@@ -94,10 +97,12 @@ func (a *AuthProviderImpl) CheckViewPermission(ctx context.Context, action, work
 	}
 	resp, err := a.cli.MCheckPermission(ctx, req)
 	if err != nil {
-		return errorx.NewByCode(obErrorx.CommercialCommonRPCErrorCodeCode)
+		return errorx.WrapByCode(err, obErrorx.CommercialCommonRPCErrorCodeCode)
 	} else if resp == nil {
+		logs.CtxWarn(ctx, "MCheckPermission returned nil response")
 		return errorx.NewByCode(obErrorx.CommercialCommonRPCErrorCodeCode)
 	} else if resp.BaseResp != nil && resp.BaseResp.StatusCode != 0 {
+		logs.CtxWarn(ctx, "MCheckPermission returned non-zero status code %d", resp.BaseResp.StatusCode)
 		return errorx.NewByCode(obErrorx.CommercialCommonRPCErrorCodeCode)
 	}
 	for _, r := range resp.AuthRes {

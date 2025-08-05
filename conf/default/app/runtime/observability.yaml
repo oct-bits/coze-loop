@@ -6,6 +6,22 @@ trace_mq_producer_config:
   topic: "trace_ingestion_event"
   producer_group: "trace_ingestion_event_pg"
 
+annotation_mq_producer_config:
+  addr:
+    - "cozeloop-namesrv:9876"
+  timeout: 200
+  retry_times: 3
+  topic: "trace_annotation_event"
+  producer_group: "trace_annotation_event_pg"
+
+annotation_mq_consumer_config:
+  addr:
+    - "cozeloop-namesrv:9876"
+  timeout: 180000
+  topic: "trace_annotation_event"
+  consumer_group: "trace_annotation_event_cg"
+  worker_num: 4
+
 trace_system_view_cfg:
   - id: -1
     view_name: "Exceptions"
@@ -32,22 +48,18 @@ trace_max_duration_day:
   evaluator: 180
   evaluation_target: 180
 
-trace_attr_tos_cfg:
-  template: "tplv-noop"
-  format: "jpeg"
-  ttl: 3600
-
 trace_platform_span_handler_config:
   platform_cfg:
     prompt:
 
-trace_tenant_tables_cfg:
-  insert_table:
+trace_tenant_cfg:
+  tenant_table:
     cozeloop:
-      3d: "observability_spans"
-  query_tables:
-    cozeloop:
-      - "observability_spans"
+      3d:
+        span_table: "observability_spans"
+  default_ingest_tenant: "cozeloop"
+  tenants_support_annotation:
+    cozeloop: false
 
 trace_field_meta_info:
   available_fields:
@@ -241,8 +253,6 @@ trace_field_meta_info:
         - "output_tokens"
         - "prompt_key"
         - "tokens"
-
-trace_default_tenant: "cozeloop"
 
 trace_collector_cfg:
   receivers:
