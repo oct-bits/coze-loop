@@ -25,6 +25,8 @@ import (
 	repomocks "github.com/coze-dev/coze-loop/backend/modules/prompt/domain/repo/mocks"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/service"
 	servicemocks "github.com/coze-dev/coze-loop/backend/modules/prompt/domain/service/mocks"
+	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/collector"
+	collectormocks "github.com/coze-dev/coze-loop/backend/modules/prompt/infra/collector/mocks"
 	prompterr "github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/errno"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
@@ -38,6 +40,7 @@ func TestPromptOpenAPIApplicationImpl_BatchGetPromptByPromptKey(t *testing.T) {
 		config           conf.IConfigProvider
 		auth             rpc.IAuthProvider
 		rateLimiter      limiter.IRateLimiter
+		collector        collector.ICollectorProvider
 	}
 	type args struct {
 		ctx context.Context
@@ -164,12 +167,15 @@ func TestPromptOpenAPIApplicationImpl_BatchGetPromptByPromptKey(t *testing.T) {
 					Allowed: true,
 				}, nil)
 
+				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
+				mockCollector.EXPECT().CollectPromptHubEvent(gomock.Any(), gomock.Any(), gomock.Any()).Return()
 				return fields{
 					promptService:    mockPromptService,
 					promptManageRepo: mockManageRepo,
 					config:           mockConfig,
 					auth:             mockAuth,
 					rateLimiter:      mockRateLimiter,
+					collector:        mockCollector,
 				}
 			},
 			args: args{
@@ -356,12 +362,16 @@ func TestPromptOpenAPIApplicationImpl_BatchGetPromptByPromptKey(t *testing.T) {
 					Allowed: true,
 				}, nil)
 
+				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
+				mockCollector.EXPECT().CollectPromptHubEvent(gomock.Any(), gomock.Any(), gomock.Any()).Return()
+
 				return fields{
 					promptService:    mockPromptService,
 					promptManageRepo: mockManageRepo,
 					config:           mockConfig,
 					auth:             mockAuth,
 					rateLimiter:      mockRateLimiter,
+					collector:        mockCollector,
 				}
 			},
 			args: args{
@@ -759,8 +769,8 @@ func TestPromptOpenAPIApplicationImpl_BatchGetPromptByPromptKey(t *testing.T) {
 				}, nil)
 
 				mockManageRepo := repomocks.NewMockIManageRepo(ctrl)
-				mockManageRepo.EXPECT().MGetPrompt(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 
-					errorx.NewByCode(prompterr.PromptVersionNotExistCode, 
+				mockManageRepo.EXPECT().MGetPrompt(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil,
+					errorx.NewByCode(prompterr.PromptVersionNotExistCode,
 						errorx.WithExtra(map[string]string{"prompt_id": "123"})))
 
 				mockConfig := confmocks.NewMockIConfigProvider(ctrl)
@@ -795,7 +805,7 @@ func TestPromptOpenAPIApplicationImpl_BatchGetPromptByPromptKey(t *testing.T) {
 				},
 			},
 			wantR: nil,
-			wantErr: errorx.NewByCode(prompterr.PromptVersionNotExistCode, 
+			wantErr: errorx.NewByCode(prompterr.PromptVersionNotExistCode,
 				errorx.WithExtra(map[string]string{"prompt_id": "123", "prompt_key": "test_prompt1"})),
 		},
 	}
@@ -811,6 +821,7 @@ func TestPromptOpenAPIApplicationImpl_BatchGetPromptByPromptKey(t *testing.T) {
 				config:           ttFields.config,
 				auth:             ttFields.auth,
 				rateLimiter:      ttFields.rateLimiter,
+				collector:        ttFields.collector,
 			}
 			gotR, err := p.BatchGetPromptByPromptKey(tt.args.ctx, tt.args.req)
 			unittest.AssertErrorEqual(t, tt.wantErr, err)

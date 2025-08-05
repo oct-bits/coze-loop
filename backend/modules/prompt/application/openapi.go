@@ -19,6 +19,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/entity"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/repo"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/service"
+	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/collector"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/consts"
 	prompterr "github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/errno"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
@@ -31,6 +32,7 @@ func NewPromptOpenAPIApplication(
 	config conf.IConfigProvider,
 	auth rpc.IAuthProvider,
 	factory limiter.IRateLimiterFactory,
+	collector collector.ICollectorProvider,
 ) (openapi.PromptOpenAPIService, error) {
 	return &PromptOpenAPIApplicationImpl{
 		promptService:    promptService,
@@ -38,6 +40,7 @@ func NewPromptOpenAPIApplication(
 		config:           config,
 		auth:             auth,
 		rateLimiter:      factory.NewRateLimiter(),
+		collector:        collector,
 	}, nil
 }
 
@@ -47,6 +50,7 @@ type PromptOpenAPIApplicationImpl struct {
 	config           conf.IConfigProvider
 	auth             rpc.IAuthProvider
 	rateLimiter      limiter.IRateLimiter
+	collector        collector.ICollectorProvider
 }
 
 func (p *PromptOpenAPIApplicationImpl) BatchGetPromptByPromptKey(ctx context.Context, req *openapi.BatchGetPromptByPromptKeyRequest) (r *openapi.BatchGetPromptByPromptKeyResponse, err error) {
@@ -162,6 +166,10 @@ func (p *PromptOpenAPIApplicationImpl) fetchPromptResults(ctx context.Context, r
 			Query:  q,
 			Prompt: promptDTO,
 		})
+	}
+
+	if len(promptMap) > 0 {
+		p.collector.CollectPromptHubEvent(ctx, req.GetWorkspaceID(), maps.Values(promptMap))
 	}
 
 	return r, nil

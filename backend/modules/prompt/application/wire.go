@@ -25,6 +25,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/manage"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/openapi"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/service"
+	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/collector"
 	promptconf "github.com/coze-dev/coze-loop/backend/modules/prompt/infra/conf"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/repo"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/repo/mysql"
@@ -52,6 +53,7 @@ var (
 		rpc.NewFileRPCProvider,
 		rpc.NewUserRPCProvider,
 		rpc.NewAuditRPCProvider,
+		collector.NewEventCollectorProvider,
 	)
 	manageSet = wire.NewSet(
 		NewPromptManageApplication,

@@ -23,6 +23,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/manage"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/openapi"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/service"
+	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/collector"
 	conf2 "github.com/coze-dev/coze-loop/backend/modules/prompt/infra/conf"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/repo"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/repo/mysql"
@@ -123,7 +124,8 @@ func InitPromptOpenAPIApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, re
 	iFileProvider := rpc.NewFileRPCProvider(fileClient)
 	iPromptService := service.NewPromptService(idgen2, iDebugLogRepo, iDebugContextRepo, iManageRepo, iConfigProvider, illmProvider, iFileProvider)
 	iAuthProvider := rpc.NewAuthRPCProvider(authClient)
-	promptOpenAPIService, err := NewPromptOpenAPIApplication(iPromptService, iManageRepo, iConfigProvider, iAuthProvider, limiterFactory)
+	iCollectorProvider := collector.NewEventCollectorProvider()
+	promptOpenAPIService, err := NewPromptOpenAPIApplication(iPromptService, iManageRepo, iConfigProvider, iAuthProvider, limiterFactory, iCollectorProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +135,7 @@ func InitPromptOpenAPIApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, re
 // wire.go:
 
 var (
-	promptDomainSet = wire.NewSet(service.NewPromptService, repo.NewManageRepo, repo.NewDebugLogRepo, repo.NewDebugContextRepo, mysql.NewPromptBasicDAO, mysql.NewPromptCommitDAO, mysql.NewPromptUserDraftDAO, mysql.NewDebugLogDAO, mysql.NewDebugContextDAO, redis2.NewPromptBasicDAO, redis2.NewPromptDAO, conf2.NewPromptConfigProvider, rpc.NewLLMRPCProvider, rpc.NewAuthRPCProvider, rpc.NewFileRPCProvider, rpc.NewUserRPCProvider, rpc.NewAuditRPCProvider)
+	promptDomainSet = wire.NewSet(service.NewPromptService, repo.NewManageRepo, repo.NewDebugLogRepo, repo.NewDebugContextRepo, mysql.NewPromptBasicDAO, mysql.NewPromptCommitDAO, mysql.NewPromptUserDraftDAO, mysql.NewDebugLogDAO, mysql.NewDebugContextDAO, redis2.NewPromptBasicDAO, redis2.NewPromptDAO, conf2.NewPromptConfigProvider, rpc.NewLLMRPCProvider, rpc.NewAuthRPCProvider, rpc.NewFileRPCProvider, rpc.NewUserRPCProvider, rpc.NewAuditRPCProvider, collector.NewEventCollectorProvider)
 	manageSet       = wire.NewSet(
 		NewPromptManageApplication,
 		promptDomainSet,
