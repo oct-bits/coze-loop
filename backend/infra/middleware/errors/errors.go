@@ -77,6 +77,10 @@ func getBizStatusError(err error, wrapCode int32) kerrors.BizStatusErrorIface {
 		unknownErr := detailedErr.Unwrap()
 		return kerrors.NewBizStatusError(wrapCode, fmt.Sprintf("%s:%s", DefaultErrorMsg, errorx.ErrorWithoutStack(unknownErr)))
 	}
+	statusErr, ok := kerrors.FromBizStatusError(errorx.NewByCode(wrapCode))
+	if ok {
+		return statusErr
+	}
 	return kerrors.NewBizStatusError(wrapCode, fmt.Sprintf("%s:%v", DefaultErrorMsg, errorx.ErrorWithoutStack(err)))
 }
 
