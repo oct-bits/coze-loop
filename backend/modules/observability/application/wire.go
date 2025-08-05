@@ -107,7 +107,7 @@ func NewTraceQueryProcessorBuilder(
 		},
 		// list spans processors
 		[]span_processor.Factory{
-			span_processor.NewAttrTosProcessorFactory(fileProvider),
+			span_processor.NewPlatformProcessorFactory(traceConfig),
 			span_processor.NewExpireErrorProcessorFactory(benefitSvc),
 		},
 		// batch get advance info processors
