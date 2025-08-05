@@ -35,6 +35,7 @@ type ExptTurnResultDAO interface {
 	GetItemTurnRunLogs(ctx context.Context, exptID, exptRunID, itemID, spaceID int64, opts ...db.Option) ([]*model.ExptTurnResultRunLog, error)
 	MGetItemTurnRunLogs(ctx context.Context, exptID, exptRunID int64, itemIDs []int64, spaceID int64, opts ...db.Option) ([]*model.ExptTurnResultRunLog, error)
 	SaveTurnRunLogs(ctx context.Context, turnResults []*model.ExptTurnResultRunLog, opts ...db.Option) error
+	UpdateTurnRunLogWithItemIDs(ctx context.Context, spaceID, exptID, exptRunID int64, itemIDs []int64, ufields map[string]any, opts ...db.Option) error
 	ScanTurnRunLogs(ctx context.Context, exptID, cursor, limit, spaceID int64, opts ...db.Option) ([]*model.ExptTurnResultRunLog, int64, error)
 }
 
@@ -178,6 +179,21 @@ func (dao *ExptTurnResultDAOImpl) SaveTurnResults(ctx context.Context, turnResul
 	db := dao.provider.NewSession(ctx, opts...)
 	if err := query.Use(db).ExptTurnResult.WithContext(ctx).Save(turnResults...); err != nil {
 		return errorx.Wrapf(err, "ExptTurnResultRepo.SaveTurnRunLogs fail, models: %v", json.Jsonify(turnResults))
+	}
+	return nil
+}
+
+func (dao *ExptTurnResultDAOImpl) UpdateTurnRunLogWithItemIDs(ctx context.Context, spaceID, exptID, exptRunID int64, itemIDs []int64, ufields map[string]any, opts ...db.Option) error {
+	q := query.Use(dao.provider.NewSession(ctx, opts...)).ExptTurnResultRunLog
+	if _, err := q.WithContext(ctx).
+		Where(
+			q.SpaceID.Eq(spaceID),
+			q.ExptID.Eq(exptID),
+			q.ExptRunID.Eq(exptRunID),
+			q.ItemID.In(itemIDs...),
+		).
+		Updates(ufields); err != nil {
+		return errorx.Wrapf(err, "UpdateTurnRunLogWithItemIDs fail, exptID: %v, itemIDs: %v, ufields: %v", exptID, itemIDs, ufields)
 	}
 	return nil
 }

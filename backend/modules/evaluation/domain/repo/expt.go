@@ -64,6 +64,7 @@ type IExptTurnResultRepo interface {
 	GetItemTurnRunLogs(ctx context.Context, exptID, exptRunID, itemID, spaceID int64) ([]*entity.ExptTurnResultRunLog, error)
 	MGetItemTurnRunLogs(ctx context.Context, exptID, exptRunID int64, itemIDs []int64, spaceID int64) ([]*entity.ExptTurnResultRunLog, error)
 	SaveTurnRunLogs(ctx context.Context, turnResults []*entity.ExptTurnResultRunLog) error
+	CreateOrUpdateItemsTurnRunLogStatus(ctx context.Context, spaceID, exptID, exptRunID int64, itemIDs []int64, status entity.TurnRunState) error
 	ScanTurnRunLogs(ctx context.Context, exptID, cursor, limit, spaceID int64) ([]*entity.ExptTurnResultRunLog, int64, error)
 
 	BatchGetTurnEvaluatorResultRef(ctx context.Context, spaceID int64, exptTurnResultIDs []int64) ([]*entity.ExptTurnEvaluatorResultRef, error)

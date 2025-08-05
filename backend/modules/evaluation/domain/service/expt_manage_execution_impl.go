@@ -446,7 +446,7 @@ func (e *ExptMangerImpl) CompleteExpt(ctx context.Context, exptID, spaceID int64
 
 	status := opt.Status
 	if !entity.IsExptFinished(status) {
-		if stats.PendingTurnCnt > 0 || stats.FailTurnCnt > 0 {
+		if stats.FailTurnCnt > 0 || stats.TerminatedTurnCnt > 0 || len(stats.IncompleteTurnIDs) > 0 {
 			status = entity.ExptStatus_Failed
 		} else {
 			status = entity.ExptStatus_Success
@@ -499,6 +499,8 @@ func (e *ExptMangerImpl) terminateItemTurns(ctx context.Context, exptID int64, i
 	for _, itemTurnID := range itemTurnIDs {
 		itemIDs = append(itemIDs, itemTurnID.ItemID)
 	}
+
+	logs.CtxInfo(ctx, "terminate expt item/turn result with item_ids: %v", itemIDs)
 
 	if err := e.itemResultRepo.UpdateItemsResult(ctx, spaceID, exptID, itemIDs, map[string]any{
 		"status": int32(entity.ItemRunState_Terminal),

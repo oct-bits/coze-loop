@@ -156,7 +156,7 @@ func (e *ExptSchedulerImpl) makeExptRunExecLockKey(exptID, exptRunID int64) stri
 
 func (e *ExptSchedulerImpl) HandleEventLock(next SchedulerEndPoint) SchedulerEndPoint {
 	return func(ctx context.Context, event *entity.ExptScheduleEvent) error {
-		locked, ctx, unlock, err := e.Mutex.LockWithRenew(ctx, e.makeExptRunExecLockKey(event.ExptID, event.ExptRunID), time.Second*20, time.Second*60*3)
+		locked, ctx, unlock, err := e.Mutex.LockWithRenew(ctx, e.makeExptRunExecLockKey(event.ExptID, event.ExptRunID), time.Second*20, time.Second*60*5)
 		if err != nil {
 			return err
 		}
@@ -238,8 +238,12 @@ func (e *ExptSchedulerImpl) schedule(ctx context.Context, event *entity.ExptSche
 		return err
 	}
 
-	e.handleZombies(ctx, event, incomplete)
+	incomplete, zombies, err := e.handleZombies(ctx, event, incomplete)
+	if err != nil {
+		return err
+	}
 
+	complete = append(complete, zombies...)
 	if err = e.recordEvalItemRunLogs(ctx, event, complete, mode); err != nil {
 		return err
 	}
@@ -349,23 +353,35 @@ func (e *ExptSchedulerImpl) handleToSubmits(ctx context.Context, event *entity.E
 	return nil
 }
 
-func (e *ExptSchedulerImpl) handleZombies(ctx context.Context, event *entity.ExptScheduleEvent, items []*entity.ExptEvalItem) {
-	var (
-		zombies      []*entity.ExptEvalItem
-		zombieSecond = e.Configer.GetConsumerConf(ctx).GetExptExecConf(event.SpaceID).GetExptItemEvalConf().GetZombieSecond()
-	)
-
+func (e *ExptSchedulerImpl) handleZombies(ctx context.Context, event *entity.ExptScheduleEvent, items []*entity.ExptEvalItem) (alives, zombies []*entity.ExptEvalItem, err error) {
+	zombieSecond := e.Configer.GetConsumerConf(ctx).GetExptExecConf(event.SpaceID).GetExptItemEvalConf().GetZombieSecond()
 	for _, item := range items {
 		if item.State == entity.ItemRunState_Processing && item.UpdatedAt != nil && !gptr.Indirect(item.UpdatedAt).IsZero() {
-			if time.Since(gptr.Indirect(item.UpdatedAt)).Seconds() > float64(zombieSecond) {
-				zombies = append(zombies, item)
-				continue
+			if time.Now().Sub(gptr.Indirect(item.UpdatedAt)).Seconds() > float64(zombieSecond) {
+				zombies = append(zombies, item.SetState(entity.ItemRunState_Fail))
+			} else {
+				alives = append(alives, item)
 			}
 		}
 	}
 
-	if len(zombies) > 0 {
-		logs.CtxWarn(ctx, "[ExptEval] found zombie items: %v, expt_id: %v, expt_run_id: %v",
-			gslice.Transform(zombies, func(e *entity.ExptEvalItem, _ int) int64 { return e.ItemID }), event.ExptID, event.ExptRunID)
+	zombieItemIDs := gslice.Transform(zombies, func(e *entity.ExptEvalItem, _ int) int64 { return e.ItemID })
+
+	if len(zombies) == 0 {
+		return alives, zombies, nil
 	}
+
+	logs.CtxWarn(ctx, "[ExptEval] found zombie items, set failure state, expt_id: %v, expt_run_id: %v, item_ids: %v, zombie_second: %v", event.ExptID, event.ExptRunID, zombieItemIDs, zombieSecond)
+
+	if err := e.ExptItemResultRepo.UpdateItemRunLog(ctx, event.ExptID, event.ExptRunID, zombieItemIDs, map[string]any{"status": int32(entity.ItemRunState_Fail)}, event.SpaceID); err != nil {
+		return nil, nil, err
+	}
+
+	if err := e.ExptTurnResultRepo.CreateOrUpdateItemsTurnRunLogStatus(ctx, event.SpaceID, event.ExptID, event.ExptRunID, zombieItemIDs, entity.TurnRunState_Fail); err != nil {
+		return nil, nil, err
+	}
+
+	time.Sleep(time.Millisecond * 1500)
+
+	return alives, zombies, nil
 }

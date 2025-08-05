@@ -993,6 +993,7 @@ func (e ExptResultServiceImpl) CalculateStats(ctx context.Context, exptID, space
 		SuccessTurnCnt:    successCnt,
 		ProcessingTurnCnt: processingCnt,
 		TerminatedTurnCnt: terminatedCnt,
+		IncompleteTurnIDs: incompleteTurns,
 	}
 
 	logs.CtxInfo(ctx, "ExptStatsImpl.CalculateStats scan turn result done, expt_id: %v, total_cnt: %v, incomplete_cnt: %v, total: %v, stats: %v", exptID, cnt, len(incompleteTurns), total, json.Jsonify(stats))

@@ -597,6 +597,20 @@ func (mr *MockIExptTurnResultRepoMockRecorder) BatchGetTurnEvaluatorResultRef(ct
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchGetTurnEvaluatorResultRef", reflect.TypeOf((*MockIExptTurnResultRepo)(nil).BatchGetTurnEvaluatorResultRef), ctx, spaceID, exptTurnResultIDs)
 }
 
+// CreateOrUpdateItemsTurnRunLogStatus mocks base method.
+func (m *MockIExptTurnResultRepo) CreateOrUpdateItemsTurnRunLogStatus(ctx context.Context, spaceID, exptID, exptRunID int64, itemIDs []int64, status entity.TurnRunState) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateOrUpdateItemsTurnRunLogStatus", ctx, spaceID, exptID, exptRunID, itemIDs, status)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateOrUpdateItemsTurnRunLogStatus indicates an expected call of CreateOrUpdateItemsTurnRunLogStatus.
+func (mr *MockIExptTurnResultRepoMockRecorder) CreateOrUpdateItemsTurnRunLogStatus(ctx, spaceID, exptID, exptRunID, itemIDs, status any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateItemsTurnRunLogStatus", reflect.TypeOf((*MockIExptTurnResultRepo)(nil).CreateOrUpdateItemsTurnRunLogStatus), ctx, spaceID, exptID, exptRunID, itemIDs, status)
+}
+
 // CreateTurnEvaluatorRefs mocks base method.
 func (m *MockIExptTurnResultRepo) CreateTurnEvaluatorRefs(ctx context.Context, turnResults []*entity.ExptTurnEvaluatorResultRef) error {
 	m.ctrl.T.Helper()

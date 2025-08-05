@@ -58,7 +58,7 @@ import (
 func InitExperimentApplication(ctx context.Context, idgen2 idgen.IIDGenerator, db2 db.Provider, configFactory conf.IConfigLoaderFactory, rmqFactory mq.IFactory, cmdable redis.Cmdable, auditClient audit.IAuditService, meter metrics.Meter, authClient authservice.Client, evalSetService evaluation.EvaluationSetService, evaluatorService evaluation.EvaluatorService, targetService evaluation.EvalTargetService, uc userservice.Client, pms promptmanageservice.Client, pes promptexecuteservice.Client, sds datasetservice.Client, limiterFactory limiter.IRateLimiterFactory, llmcli llmruntimeservice.Client, benefitSvc benefit.IBenefitService) (IExperimentApplication, error) {
 	exptTurnResultDAO := mysql.NewExptTurnResultDAO(db2)
 	iExptTurnEvaluatorResultRefDAO := mysql.NewExptTurnEvaluatorResultRefDAO(db2)
-	iExptTurnResultRepo := experiment.NewExptTurnResultRepo(exptTurnResultDAO, iExptTurnEvaluatorResultRefDAO)
+	iExptTurnResultRepo := experiment.NewExptTurnResultRepo(idgen2, exptTurnResultDAO, iExptTurnEvaluatorResultRefDAO)
 	exptAggrResultDAO := mysql.NewExptAggrResultDAO(db2)
 	iExptAggrResultRepo := experiment.NewExptAggrResultRepo(exptAggrResultDAO, idgen2)
 	iExptDAO := mysql.NewExptDAO(db2)

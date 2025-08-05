@@ -159,6 +159,11 @@ type ExptEvalItem struct {
 	UpdatedAt        *time.Time
 }
 
+func (e *ExptEvalItem) SetState(state ItemRunState) *ExptEvalItem {
+	e.State = state
+	return e
+}
+
 type ExptEvalTurn struct {
 	ExptID    int64
 	ExptRunID int64
