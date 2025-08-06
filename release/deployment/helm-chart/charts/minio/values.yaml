@@ -1,0 +1,34 @@
+service:
+  type: ClusterIP
+  port: 19000
+  targetPort: 19000
+
+image:
+  # meta
+  registry: "cozeloop-cn-beijing.cr.volces.com"
+  repository: "iac"
+  image: "minio"
+  tag: "latest"
+  # action
+  pullPolicy: IfNotPresent
+  pullSecrets: "cozeloop-image-secret"
+
+deployment:
+  # meta
+  replicaCount: 1
+  dataMountPath: "/minio_data"
+  # performance
+  terminationGracePeriodSeconds: 10
+
+liveness:
+  startSeconds: 5
+  intervalSeconds: 5
+  timeoutSeconds: 3
+  shutdownFailureTimes: 5
+
+auth:
+  user: "root"
+  password: "cozeloop-minio-password"
+
+bucket:
+  name: "cozeloop-minio-bucket"

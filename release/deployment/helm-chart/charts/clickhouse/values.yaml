@@ -1,0 +1,36 @@
+service:
+  type: ClusterIP
+  tcpPort: 9008
+  targetTcpPort: 9008
+  httpPort: 8123
+  targetHttpPort: 8123
+
+image:
+  # meta
+  registry: "cozeloop-cn-beijing.cr.volces.com"
+  repository: "iac"
+  image: "clickhouse"
+  tag: "latest"
+  # action
+  pullPolicy: IfNotPresent
+  pullSecrets: "cozeloop-image-secret"
+
+deployment:
+  # meta
+  replicaCount: 1
+  dataMountPath: "/var/lib/clickhouse"
+  # performance
+  terminationGracePeriodSeconds: 10
+
+liveness:
+  startSeconds: 5
+  intervalSeconds: 5
+  timeoutSeconds: 3
+  shutdownFailureTimes: 5
+
+auth:
+  user: "default"
+  password: "cozeloop-clickhouse-password"
+
+database:
+  name: "cozeloop-clickhouse-database"

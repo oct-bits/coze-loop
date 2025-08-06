@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "application.name" . }}
+spec:
+  replicas: {{ .Values.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "application.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "application.name" . }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecrets }}
+      volumes:
+        - name: data
+          emptyDir: { }
+        - name: etc
+          configMap:
+            name: {{ include "configmap-etc.name" . }}
+        - name: init-sql
+          configMap:
+            name: {{ include "configmap-init-sql.name" . }}
+        - name: scripts
+          configMap:
+            name: {{ include "configmap-scripts.name" . }}
+      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
+      containers:
+        - name: {{ include "application.name" . }}
+          image: {{ include "image.fullname" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.deployment.dataMountPath }}
+            - name: etc
+              mountPath: {{ include "etc.path" . }}
+              readOnly: true
+            - name: init-sql
+              mountPath: {{ include "init-sql.path" . }}
+              readOnly: true
+            - name: scripts
+              mountPath: {{ include "scripts.path" . }}
+              readOnly: true
+          env:
+            - name: COZELOOP_MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret.name" . }}
+                  key: user
+            - name: COZELOOP_MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret.name" . }}
+                  key: password
+            - name: COZELOOP_MYSQL_DATABASE
+              value: {{ .Values.database.name }}
+          command: [ "/bin/bash" ]
+          args: [ "{{ include "entrypoint.path" . }}" ]
+          livenessProbe:
+            exec:
+              command: [ "/bin/bash", "{{ include "healthcheck.path" . }}" ]
+            initialDelaySeconds: {{ .Values.liveness.startSeconds }}
+            periodSeconds: {{ .Values.liveness.intervalSeconds }}
+            timeoutSeconds: {{ .Values.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.liveness.shutdownFailureTimes }}

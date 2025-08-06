@@ -1,0 +1,34 @@
+service:
+  type: ClusterIP
+  port: 3306
+  targetPort: 3306
+
+image:
+  # meta
+  registry: "cozeloop-cn-beijing.cr.volces.com"
+  repository: "iac"
+  image: "mysql"
+  tag: "latest"
+  # action
+  pullPolicy: IfNotPresent
+  pullSecrets: "cozeloop-image-secret"
+
+deployment:
+  # meta
+  replicaCount: 1
+  dataMountPath: "/var/lib/mysql"
+  # performance
+  terminationGracePeriodSeconds: 10
+
+liveness:
+  startSeconds: 5
+  intervalSeconds: 5
+  timeoutSeconds: 3
+  shutdownFailureTimes: 5
+
+auth:
+  user: "root"
+  password: "cozeloop-mysql-password"
+
+database:
+  name: "cozeloop-mysql-database"

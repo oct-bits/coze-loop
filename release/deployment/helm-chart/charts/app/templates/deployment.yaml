@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "application.name" . }}
+spec:
+  replicas: {{ .Values.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "application.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "application.name" . }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecrets }}
+      volumes:
+        - name: etc
+          configMap:
+            name: {{ include "configmap-etc.name" . }}
+        - name: scripts
+          configMap:
+            name: {{ include "configmap-scripts.name" . }}
+      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
+      containers:
+        - name: {{ include "application.name" . }}
+          image: {{ include "image.fullname" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+            - containerPort: {{ .Values.service.targetDebugPort }}
+            - containerPort: {{ .Values.service.targetHertzPort }}
+          volumeMounts:
+            - name: etc
+              mountPath: {{ include "etc.path" . }}
+              readOnly: true
+            - name: scripts
+              mountPath: {{ include "scripts.path" . }}
+              readOnly: true
+          env:
+            - name: RUN_MODE
+              value: {{ .Values.env.RUN_MODE }}
+            - name: COZELOOP_APP_HERTZ_PORT_POD
+              value: "{{ .Values.env.COZELOOP_APP_HERTZ_PORT_POD }}"
+            # redis
+            - name: COZELOOP_REDIS_ADDR_ACCESS
+              value: {{ .Values.env.COZELOOP_REDIS_ADDR_ACCESS }}
+            - name: COZELOOP_REDIS_PASSWORD
+              value: {{ .Values.env.COZELOOP_REDIS_PASSWORD }}
+            - name: COZELOOP_REDIS_ADDR_ACCESS_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_REDIS_ADDR_ACCESS_CUSTOMIZED }}
+            - name: COZELOOP_REDIS_PASSWORD_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_REDIS_PASSWORD_CUSTOMIZED }}
+            # mysql
+            - name: COZELOOP_MYSQL_HOST_ACCESS
+              value: {{ .Values.env.COZELOOP_MYSQL_HOST_ACCESS }}
+            - name: COZELOOP_MYSQL_PORT_ACCESS
+              value: "{{ .Values.env.COZELOOP_MYSQL_PORT_ACCESS }}"
+            - name: COZELOOP_MYSQL_DATABASE
+              value: {{ .Values.env.COZELOOP_MYSQL_DATABASE }}
+            - name: COZELOOP_MYSQL_USER
+              value: {{ .Values.env.COZELOOP_MYSQL_USER }}
+            - name: COZELOOP_MYSQL_PASSWORD
+              value: {{ .Values.env.COZELOOP_MYSQL_PASSWORD }}
+            - name: COZELOOP_MYSQL_HOST_ACCESS_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_MYSQL_HOST_ACCESS_CUSTOMIZED }}
+            - name: COZELOOP_MYSQL_PORT_ACCESS_CUSTOMIZED
+              value: "{{ .Values.env.COZELOOP_MYSQL_PORT_ACCESS_CUSTOMIZED }}"
+            - name: COZELOOP_MYSQL_DATABASE_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_MYSQL_DATABASE_CUSTOMIZED }}
+            - name: COZELOOP_MYSQL_USER_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_MYSQL_USER_CUSTOMIZED }}
+            - name: COZELOOP_MYSQL_PASSWORD_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_MYSQL_PASSWORD_CUSTOMIZED }}
+            # clickHouse
+            - name: COZELOOP_CLICKHOUSE_ADDR_ACCESS
+              value: {{ .Values.env.COZELOOP_CLICKHOUSE_ADDR_ACCESS }}
+            - name: COZELOOP_CLICKHOUSE_DATABASE
+              value: {{ .Values.env.COZELOOP_CLICKHOUSE_DATABASE }}
+            - name: COZELOOP_CLICKHOUSE_USER
+              value: {{ .Values.env.COZELOOP_CLICKHOUSE_USER }}
+            - name: COZELOOP_CLICKHOUSE_PASSWORD
+              value: {{ .Values.env.COZELOOP_CLICKHOUSE_PASSWORD }}
+            - name: COZELOOP_CLICKHOUSE_ADDR_ACCESS_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_CLICKHOUSE_ADDR_ACCESS_CUSTOMIZED }}
+            - name: COZELOOP_CLICKHOUSE_DATABASE_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_CLICKHOUSE_DATABASE_CUSTOMIZED }}
+            - name: COZELOOP_CLICKHOUSE_USER_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_CLICKHOUSE_USER_CUSTOMIZED }}
+            - name: COZELOOP_CLICKHOUSE_PASSWORD_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_CLICKHOUSE_PASSWORD_CUSTOMIZED }}
+            # oss
+            - name: COZELOOP_OSS_REGION
+              value: {{ .Values.env.COZELOOP_OSS_REGION }}
+            - name: COZELOOP_OSS_ADDR_ACCESS
+              value: {{ .Values.env.COZELOOP_OSS_ADDR_ACCESS }}
+            - name: COZELOOP_OSS_ENDPOINT_ACCESS
+              value: {{ .Values.env.COZELOOP_OSS_ENDPOINT_ACCESS }}
+            - name: COZELOOP_OSS_BUCKET
+              value: {{ .Values.env.COZELOOP_OSS_BUCKET }}
+            - name: COZELOOP_OSS_USER
+              value: {{ .Values.env.COZELOOP_OSS_USER }}
+            - name: COZELOOP_OSS_PASSWORD
+              value: {{ .Values.env.COZELOOP_OSS_PASSWORD }}
+            - name: COZELOOP_OSS_REGION_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_OSS_REGION_CUSTOMIZED }}
+            - name: COZELOOP_OSS_ADDR_ACCESS_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_OSS_ADDR_ACCESS_CUSTOMIZED }}
+            - name: COZELOOP_OSS_ENDPOINT_ACCESS_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_OSS_ENDPOINT_ACCESS_CUSTOMIZED }}
+            - name: COZELOOP_OSS_BUCKET_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_OSS_BUCKET_CUSTOMIZED }}
+            - name: COZELOOP_OSS_USER_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_OSS_USER_CUSTOMIZED }}
+            - name: COZELOOP_OSS_PASSWORD_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_OSS_PASSWORD_CUSTOMIZED }}
+            # rmqamesrv
+            - name: COZELOOP_RMQNAMESRV_ADDR_ACCESS
+              value: {{ .Values.env.COZELOOP_RMQNAMESRV_ADDR_ACCESS }}
+            - name: COZELOOP_RMQNAMESRV_USER
+              value: {{ .Values.env.COZELOOP_RMQNAMESRV_USER }}
+            - name: COZELOOP_RMQNAMESRV_PASSWORD
+              value: {{ .Values.env.COZELOOP_RMQNAMESRV_PASSWORD }}
+            - name: COZELOOP_RMQNAMESRV_ADDR_ACCESS_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_RMQNAMESRV_ADDR_ACCESS_CUSTOMIZED }}
+            - name: COZELOOP_RMQNAMESRV_USER_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_RMQNAMESRV_USER_CUSTOMIZED }}
+            - name: COZELOOP_RMQNAMESRV_PASSWORD_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_RMQNAMESRV_PASSWORD_CUSTOMIZED }}
+          command: [ "/bin/sh" ]
+          args: [ "{{ include "entrypoint.path" . }}" ]
+          livenessProbe:
+            exec:
+              command: [ "/bin/sh", "{{ include "healthcheck.path" . }}" ]
+            initialDelaySeconds: {{ .Values.liveness.startSeconds }}
+            periodSeconds: {{ .Values.liveness.intervalSeconds }}
+            timeoutSeconds: {{ .Values.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.liveness.shutdownFailureTimes }}

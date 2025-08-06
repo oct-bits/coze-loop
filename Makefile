@@ -1,20 +1,22 @@
 .PHONY: debug fe server sync_db dump_db middleware web down clean python help
 
-# 定义脚本路径
-SCRIPTS_DIR := ./scripts
-BUILD_FE_SCRIPT := $(SCRIPTS_DIR)/build_fe.sh
-BUILD_SERVER_SCRIPT := $(SCRIPTS_DIR)/setup/server.sh
-SYNC_DB_SCRIPT := $(SCRIPTS_DIR)/setup/db_migrate_apply.sh
-DUMP_DB_SCRIPT := $(SCRIPTS_DIR)/setup/db_migrate_dump.sh
-SETUP_DOCKER_SCRIPT := $(SCRIPTS_DIR)/setup/docker.sh
-SETUP_PYTHON_SCRIPT := $(SCRIPTS_DIR)/setup/python.sh
-COMPOSE_FILE := docker/docker-compose.yml
-MYSQL_SCHEMA := ./docker/volumes/mysql/schema.sql
-MYSQL_INIT_SQL := ./docker/volumes/mysql/sql_init.sql
-ENV_FILE := ./docker/.env
-STATIC_DIR := ./bin/resources/static
-ES_INDEX_SCHEMA := ./docker/volumes/elasticsearch/es_index_schema
-ES_SETUP_SCRIPT := ./docker/volumes/elasticsearch/setup_es.sh
+KB_NAMESPACE := coze-loop
+KB_RELEASE_NAME := coze-loop
+KB_DEPLOY_NAME := coze-loop
+KB_CHART_PATH :=./release/deployment/helm-chart/charts
+
+kb-ctx:
+	kubectl config get-contexts
+kb-ns:
+	kubectl get namespaces
+
+kb-up-%:
+	helm upgrade \
+      --install --force $(KB_RELEASE_NAME)-$* $(KB_CHART_PATH)/$* \
+      --namespace $(KB_NAMESPACE) --create-namespace \
+      -f $(KB_CHART_PATH)/$*/values.yaml && \
+    kubectl rollout status deployment/$(KB_DEPLOY_NAME)-$* -n $(KB_NAMESPACE) && \
+    kubectl logs -n $(KB_NAMESPACE) -f deploy/$(KB_DEPLOY_NAME)-$*
 
 up:
 	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "*" up

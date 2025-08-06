@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cozeloop-rmqbroker
+description: Cozeloop RmqBroker Helm chart
+type: application
+version: 1.0.0
+appVersion: latest

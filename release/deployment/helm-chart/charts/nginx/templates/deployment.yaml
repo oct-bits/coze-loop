@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "application.name" . }}
+spec:
+  replicas: {{ .Values.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "application.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "application.name" . }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecrets }}
+      volumes:
+        - name: etc
+          configMap:
+            name: {{ include "configmap-etc.name" . }}
+        - name: scripts
+          configMap:
+            name: {{ include "configmap-scripts.name" . }}
+      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
+      containers:
+        - name: {{ include "application.name" . }}
+          image: {{ include "image.fullname" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          volumeMounts:
+            - name: etc
+              mountPath: {{ include "etc.path" . }}
+              readOnly: true
+            - name: scripts
+              mountPath: {{ include "scripts.path" . }}
+              readOnly: true
+          env:
+            - name: COZELOOP_INGRESS_PORT_POD
+              value: "{{ .Values.service.targetPort }}"
+            - name: COZELOOP_APP_HERTZ_ADDR_POD
+              value: {{ .Values.env.COZELOOP_APP_HERTZ_ADDR_POD }}
+            - name: COZELOOP_OSS_ADDR_POD
+              value: {{ .Values.env.COZELOOP_OSS_ADDR_POD }}
+            - name: COZELOOP_OSS_BUCKET
+              value: {{ .Values.env.COZELOOP_OSS_BUCKET }}
+            - name: COZELOOP_OSS_ADDR_POD_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_OSS_ADDR_POD_CUSTOMIZED }}
+            - name: COZELOOP_OSS_BUCKET_CUSTOMIZED
+              value: {{ .Values.env.COZELOOP_OSS_BUCKET_CUSTOMIZED }}
+          command: [ "/bin/bash" ]
+          args: [ "{{ include "entrypoint.path" . }}" ]
+          livenessProbe:
+            exec:
+              command: [ "/bin/sh", "{{ include "healthcheck.path" . }}" ]
+            initialDelaySeconds: {{ .Values.liveness.startSeconds }}
+            periodSeconds: {{ .Values.liveness.intervalSeconds }}
+            timeoutSeconds: {{ .Values.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.liveness.shutdownFailureTimes }}

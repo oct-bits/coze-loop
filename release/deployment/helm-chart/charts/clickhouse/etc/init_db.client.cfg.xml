@@ -1,0 +1,6 @@
+<clickhouse>
+    <user>${COZELOOP_CLICKHOUSE_USER}</user>
+    <password>${COZELOOP_CLICKHOUSE_PASSWORD}</password>
+    <host>localhost</host>
+    <port>${COZELOOP_CLICKHOUSE_TCP_PORT_POD}</port>
+</clickhouse>

@@ -1,0 +1,27 @@
+service:
+  type: ClusterIP
+  port: 9876
+  targetPort: 9876
+
+image:
+  # meta
+  registry: "cozeloop-cn-beijing.cr.volces.com"
+  repository: "iac"
+  image: "rmqnamesrv"
+  tag: "latest"
+  # action
+  pullPolicy: IfNotPresent
+  pullSecrets: "cozeloop-image-secret"
+
+deployment:
+  # meta
+  replicaCount: 1
+  dataMountPath: "/store"
+  # performance
+  terminationGracePeriodSeconds: 5
+
+liveness:
+  startSeconds: 5
+  intervalSeconds: 5
+  timeoutSeconds: 3
+  shutdownFailureTimes: 5
