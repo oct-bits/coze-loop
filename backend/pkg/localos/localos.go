@@ -3,6 +3,11 @@
 
 package localos
 
+import (
+	"fmt"
+	"os"
+)
+
 func GetLocalOSHost() string {
-	return "cozeloop-minio:19000"
+	return fmt.Sprintf("%s:%s", os.Getenv("COZE_LOOP_OSS_DOMAIN"), os.Getenv("COZE_LOOP_OSS_PORT"))
 }

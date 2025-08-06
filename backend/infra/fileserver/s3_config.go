@@ -4,6 +4,7 @@
 package fileserver
 
 import (
+	"github.com/bytedance/gg/gptr"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
@@ -40,6 +41,11 @@ type S3Config struct {
 	// The maximum size of the uploaded object. Default is 4GB, must be greater than
 	// 0.
 	MaxObjectSize int64 `json:"max_object_size" yaml:"max_object_size"`
+
+	// If true, the path style will be used for the S3 endpoint.
+	// If false, the virtual hosted-style will be used for the S3 endpoint.
+	// Default is true.
+	ForcePathStyle *bool `json:"force_path_style" yaml:"force_path_style"`
 }
 
 func NewS3Config(opts ...S3Option) *S3Config {
@@ -48,6 +54,7 @@ func NewS3Config(opts ...S3Option) *S3Config {
 		DownloadPartSize: DefaultDownloadPartSize,
 		UploadPartSize:   DefaultUploadPartSize,
 		MaxObjectSize:    DefaultMaxObjectSize,
+		ForcePathStyle:   gptr.Of(true),
 	}
 	for _, opt := range opts {
 		opt(cfg)
