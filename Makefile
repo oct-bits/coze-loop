@@ -10,6 +10,9 @@ kb-ctx:
 kb-ns:
 	kubectl get namespaces
 
+kb-pod:
+	kubectl get pods -n $(KB_NAMESPACE)
+
 kb-up-%:
 	helm upgrade \
       --install --force $(KB_RELEASE_NAME)-$* $(KB_CHART_PATH)/$* \
@@ -17,6 +20,9 @@ kb-up-%:
       -f $(KB_CHART_PATH)/$*/values.yaml && \
     kubectl rollout status deployment/$(KB_DEPLOY_NAME)-$* -n $(KB_NAMESPACE) && \
     kubectl logs -n $(KB_NAMESPACE) -f deploy/$(KB_DEPLOY_NAME)-$*
+
+kb-clean:
+	helm list -n $(KB_NAMESPACE) -q | xargs -r -n1 helm uninstall -n $(KB_NAMESPACE)
 
 up:
 	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "*" up
