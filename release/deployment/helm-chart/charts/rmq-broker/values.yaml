@@ -11,6 +11,14 @@ image:
   pullPolicy: IfNotPresent
   pullSecrets: "coze-loop-image-secret"
 
+nc_image:
+  registry: "compose-cn-beijing.cr.volces.com"
+  repository: "library"
+  image: "busybox"
+  tag: "latest"
+  pullPolicy: IfNotPresent
+  pullSecrets: "coze-loop-image-secret"
+
 deployment:
   replicaCount: 1
   dataMountPath: "/store"

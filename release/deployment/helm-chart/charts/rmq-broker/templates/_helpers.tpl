@@ -10,6 +10,10 @@
     {{ printf "%s/%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.image .Values.image.tag }}
 {{- end -}}
 
+{{- define "nc_image.fullname" -}}
+    {{ printf "%s/%s/%s:%s" .Values.nc_image.registry .Values.nc_image.repository .Values.nc_image.image .Values.nc_image.tag }}
+{{- end -}}
+
 {{- define "configmap.name" -}}
     {{ printf "%s-configmap" (include "application.name" .) }}
 {{- end -}}

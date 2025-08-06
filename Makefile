@@ -19,7 +19,11 @@ kb-up-%:
       --namespace $(KB_NAMESPACE) --create-namespace \
       -f $(KB_CHART_PATH)/$*/values.yaml && \
     kubectl rollout status deployment/$(KB_DEPLOY_NAME)-$* -n $(KB_NAMESPACE) && \
-    kubectl logs -n $(KB_NAMESPACE) -f deploy/$(KB_DEPLOY_NAME)-$*
+    POD=$$(kubectl get pod -n $(KB_NAMESPACE) -l app=$(KB_DEPLOY_NAME)-$* -o jsonpath='{.items[0].metadata.name}') && \
+    for c in $$(kubectl get pod $$POD -n $(KB_NAMESPACE) -o jsonpath='{.spec.initContainers[*].name} {.spec.containers[*].name}'); do \
+      echo "========== logs from container: $$c =========="; \
+      kubectl logs -n $(KB_NAMESPACE) -f $$POD -c $$c; \
+    done
 
 kb-clean:
 	helm list -n $(KB_NAMESPACE) -q | xargs -r -n1 helm uninstall -n $(KB_NAMESPACE)
