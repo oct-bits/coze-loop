@@ -17,31 +17,31 @@ ES_INDEX_SCHEMA := ./docker/volumes/elasticsearch/es_index_schema
 ES_SETUP_SCRIPT := ./docker/volumes/elasticsearch/setup_es.sh
 
 up:
-	docker compose -f ./release/deployment/docker/docker-compose.yml --env-file ./release/deployment/docker/.env --profile "*" up
+	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "*" up
 
 up-redis:
-	docker compose -f ./release/deployment/docker/docker-compose.yml --env-file ./release/deployment/docker/.env --profile "redis" up
+	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "redis" up
 
 up-mysql:
-	docker compose -f ./release/deployment/docker/docker-compose.yml --env-file ./release/deployment/docker/.env --profile "mysql" up
+	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "mysql" up
 
 up-clickhouse:
-	docker compose -f ./release/deployment/docker/docker-compose.yml --env-file ./release/deployment/docker/.env --profile "clickhouse" up
+	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "clickhouse" up
 
 up-minio:
-	docker compose -f ./release/deployment/docker/docker-compose.yml --env-file ./release/deployment/docker/.env --profile "minio" up
+	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "minio" up
 
 up-rmq:
-	docker compose -f ./release/deployment/docker/docker-compose.yml --env-file ./release/deployment/docker/.env --profile "rmq" up
+	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "rmq" up
 
 up-nginx:
-	docker compose -f ./release/deployment/docker/docker-compose.yml --env-file ./release/deployment/docker/.env --profile "nginx" up
+	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "nginx" up
 
 down:
-	docker compose -f ./release/deployment/docker/docker-compose.yml ---profile '*' down
+	docker compose -f ./release/deployment/docker-compose/docker-compose.yml ---profile '*' down
 
 down-v:
-	docker compose -f ./release/deployment/docker/docker-compose.yml --profile '*' down -v
+	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --profile '*' down -v
 
 image:
 	@echo "Building coze-loop-app image..."
