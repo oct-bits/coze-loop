@@ -1,25 +1,19 @@
 service:
   type: ClusterIP
-  busPort: 10911
-  targetBusPort: 10911
-  mgmtPort: 10909
-  targetMgmtPort: 10909
+  port: 10911
+  targetPort: 10911
 
 image:
-  # meta
-  registry: "cozeloop-cn-beijing.cr.volces.com"
-  repository: "iac"
-  image: "rmqbroker"
+  registry: "compose-cn-beijing.cr.volces.com"
+  repository: "apache"
+  image: "rocketmq"
   tag: "latest"
-  # action
   pullPolicy: IfNotPresent
-  pullSecrets: "cozeloop-image-secret"
+  pullSecrets: "coze-loop-image-secret"
 
 deployment:
-  # meta
   replicaCount: 1
   dataMountPath: "/store"
-  # performance
   terminationGracePeriodSeconds: 5
 
 liveness:

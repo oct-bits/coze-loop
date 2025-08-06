@@ -8,10 +8,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - name: broker
-      port: {{ .Values.service.busPort }}
-      targetPort: {{.Values.service.targetBusPort}}
-    - name: ha
-      port: {{.Values.service.mgmtPort }}
-      targetPort: {{.Values.service.targetMgmtPort}}
+      port: {{ .Values.service.port }}
+      targetPort: {{.Values.service.targetPort}}
   selector:
     app: {{ include "application.name" . }}

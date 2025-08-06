@@ -14,44 +14,35 @@ spec:
     spec:
       imagePullSecrets:
         - name: {{ .Values.image.pullSecrets }}
+      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
       volumes:
         - name: data
           emptyDir: { }
-        - name: etc
+        - name: bootstrap
           configMap:
-            name: {{ include "configmap-etc.name" . }}
-        - name: scripts
-          configMap:
-            name: {{ include "configmap-scripts.name" . }}
-      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
+            name: {{ include "configmap.name" . }}
       containers:
         - name: {{ include "application.name" . }}
           image: {{ include "image.fullname" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.service.targetBusPort }}
-            - containerPort: {{ .Values.service.targetMgmtPort }}
+            - containerPort: {{ .Values.service.targetPort }}
           volumeMounts:
             - name: data
               mountPath: {{ .Values.deployment.dataMountPath }}
-            - name: etc
-              mountPath: {{ include "etc.path" . }}
-              readOnly: true
-            - name: scripts
-              mountPath: {{ include "scripts.path" . }}
+            - name: bootstrap
+              mountPath: {{ include "bootstrap.path" . }}
               readOnly: true
           env:
-            - name: COZELOOP_RMQBROKER_BUS_PORT_POD
-              value: "{{ .Values.service.targetBusPort }}"
             - name: BROKER_ROLE
               value: "ASYNC_MASTER"
             - name: FLUSH_DISK_TYPE
               value: "ASYNC_FLUSH"
-          command: [ "/bin/bash" ]
-          args: [ "{{ include "entrypoint.path" . }}" ]
+          command: [ "/bin/sh" ]
+          args: [ {{ include "entrypoint.path" . | quote }} ]
           livenessProbe:
             exec:
-              command: [ "/bin/bash", "{{ include "healthcheck.path" . }}" ]
+              command: [ "/bin/sh", {{ include "healthcheck.path" . | quote }} ]
             initialDelaySeconds: {{ .Values.liveness.startSeconds }}
             periodSeconds: {{ .Values.liveness.intervalSeconds }}
             timeoutSeconds: {{ .Values.liveness.timeoutSeconds }}
