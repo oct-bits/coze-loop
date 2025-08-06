@@ -14,60 +14,41 @@ spec:
     spec:
       imagePullSecrets:
         - name: {{ .Values.image.pullSecrets }}
+      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
       volumes:
         - name: data
           emptyDir: { }
-        - name: etc
+        - name: bootstrap
           configMap:
-            name: {{ include "configmap-etc.name" . }}
-        - name: init-sql
-          configMap:
-            name: {{ include "configmap-init-sql.name" . }}
-        - name: scripts
-          configMap:
-            name: {{ include "configmap-scripts.name" . }}
-      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
+            name: {{ include "configmap.name" . }}
       containers:
         - name: {{ include "application.name" . }}
           image: {{ include "image.fullname" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.service.targetTcpPort }}
-            - containerPort: {{ .Values.service.targetHttpPort }}
+            - containerPort: {{ .Values.service.targetPort }}
           volumeMounts:
             - name: data
               mountPath: {{ .Values.deployment.dataMountPath }}
-            - name: etc
-              mountPath: {{ include "etc.path" . }}
-              readOnly: true
-            - name: init-sql
-              mountPath: {{ include "init-sql.path" . }}
-              readOnly: true
-            - name: scripts
-              mountPath: {{ include "scripts.path" . }}
+            - name: bootstrap
+              mountPath: {{ include "bootstrap.path" . }}
               readOnly: true
           env:
-            - name: COZELOOP_CLICKHOUSE_TCP_PORT_POD
-              value: "{{ .Values.service.targetTcpPort }}"
-            - name: COZELOOP_CLICKHOUSE_HTTP_PORT_POD
-              value: "{{ .Values.service.targetHttpPort }}"
-            - name: COZELOOP_CLICKHOUSE_USER
+            - name: COZE_LOOP_CLICKHOUSE_USER
               valueFrom:
                 secretKeyRef:
                   name: {{ include "secret.name" . }}
                   key: user
-            - name: COZELOOP_CLICKHOUSE_PASSWORD
+            - name: COZE_LOOP_CLICKHOUSE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "secret.name" . }}
                   key: password
-            - name: COZELOOP_CLICKHOUSE_DATABASE
-              value: {{ .Values.database.name }}
-          command: [ "/bin/bash" ]
-          args: [ "{{ include "entrypoint.path" . }}" ]
+          command: [ "/bin/sh" ]
+          args: [ {{ include "entrypoint.path" . | quote }} ]
           livenessProbe:
             exec:
-              command: [ "/bin/bash", "{{ include "healthcheck.path" . }}" ]
+              command: [ "/bin/sh", {{ include "healthcheck.path" . | quote }} ]
             initialDelaySeconds: {{ .Values.liveness.startSeconds }}
             periodSeconds: {{ .Values.liveness.intervalSeconds }}
             timeoutSeconds: {{ .Values.liveness.timeoutSeconds }}
