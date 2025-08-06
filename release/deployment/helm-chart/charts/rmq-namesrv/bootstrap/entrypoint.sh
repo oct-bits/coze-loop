@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 exec 2>&1
 set -e
@@ -16,28 +16,27 @@ print_banner() {
   printf "%s\n%s%s%s\n%s\n" "$line" "$side_eq" "$content" "$side_eq" "$line"
 }
 
-print_banner_delay() {
-  msg="$1"
-  delay="$2"
-
-  (
-    sleep "$delay"
-    print_banner "$msg"
-  ) &
-}
-
 rmq_home() {
   base_dir="/home/rocketmq"
-  for d in "$base_dir"/rocketmq-*; do
+  for d in "${base_dir}"/rocketmq-*; do
     [ -d "$d" ] && echo "$d" && return
   done
 }
 
-print_banner "RmqNamesrv: Starting..."
-print_banner_delay "RmqNamesrv: Successfully Started!" 3
+print_banner "Starting..."
 
-echo "+ mkdir -p /store/logs"
 mkdir -p /store/logs
 
-echo "+ mqnamesrv"
-exec "$(rmq_home)/bin/mqnamesrv"
+(
+  while true; do
+    sleep 3
+    if sh /coze-loop-rmq-namesrv/bootstrap/healthcheck.sh; then
+      print_banner "Completed!"
+      break
+    else
+      sleep 1
+    fi
+  done
+)&
+
+exec "$(rmq_home)"/bin/mqnamesrv

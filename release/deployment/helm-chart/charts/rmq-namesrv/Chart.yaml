@@ -1,5 +1,5 @@
 apiVersion: v2
-name: cozeloop-rmqnamesrv
+name: coze-loop-rmq-namesrv
 description: Cozeloop RmqNameSrv Helm chart
 type: application
 version: 1.0.0

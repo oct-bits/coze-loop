@@ -14,13 +14,13 @@ spec:
     spec:
       imagePullSecrets:
         - name: {{ .Values.image.pullSecrets }}
+      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
       volumes:
         - name: data
           emptyDir: { }
-        - name: scripts
+        - name: bootstrap
           configMap:
-            name: {{ include "configmap-scripts.name" . }}
-      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
+            name: {{ include "configmap.name" . }}
       containers:
         - name: {{ include "application.name" . }}
           image: {{ include "image.fullname" . }}
@@ -30,17 +30,14 @@ spec:
           volumeMounts:
             - name: data
               mountPath: {{ .Values.deployment.dataMountPath }}
-            - name: scripts
-              mountPath: {{ include "scripts.path" . }}
+            - name: bootstrap
+              mountPath: {{ include "bootstrap.path" . }}
               readOnly: true
-          env:
-            - name: COZELOOP_RMQNAMESRV_PORT_POD
-              value: "{{ .Values.service.targetPort }}"
-          command: [ "/bin/bash" ]
-          args: [ "{{ include "entrypoint.path" . }}" ]
+          command: [ "/bin/sh" ]
+          args: [ {{ include "entrypoint.path" . | quote }} ]
           livenessProbe:
             exec:
-              command: [ "/bin/bash", "{{ include "healthcheck.path" . }}" ]
+              command: [ "/bin/sh", {{ include "healthcheck.path" . | quote }} ]
             initialDelaySeconds: {{ .Values.liveness.startSeconds }}
             periodSeconds: {{ .Values.liveness.intervalSeconds }}
             timeoutSeconds: {{ .Values.liveness.timeoutSeconds }}
