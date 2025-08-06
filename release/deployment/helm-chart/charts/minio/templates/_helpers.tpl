@@ -10,34 +10,18 @@
     {{ printf "%s/%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.image .Values.image.tag }}
 {{- end -}}
 
-{{- define "configmap-etc.name" -}}
-    {{ printf "%s-etc-configmap" (include "application.name" .) }}
+{{- define "configmap.name" -}}
+    {{ printf "%s-configmap" (include "application.name" .) }}
 {{- end -}}
 
-{{- define "configmap-scripts.name" -}}
-    {{ printf "%s-scripts-configmap" (include "application.name" .) }}
-{{- end -}}
-
-{{- define "configmap-init-sql.name" -}}
-    {{ printf "%s-init-sql-configmap" (include "application.name" .) }}
-{{- end -}}
-
-{{- define "scripts.path" -}}
-    {{ printf "/%s" (include "application.name" .) }}
-{{- end -}}
-
-{{- define "etc.path" -}}
-    {{ printf "/etc/%s" (include "application.name" .) }}
-{{- end -}}
-
-{{- define "init-sql.path" -}}
-    {{ printf "/etc/%s/init-sql" (include "application.name" .) }}
+{{- define "bootstrap.path" -}}
+    {{ printf "/%s/bootstrap" (include "application.name" .) }}
 {{- end -}}
 
 {{- define "entrypoint.path" -}}
-    {{ printf "%s/entrypoint.sh" (include "scripts.path" .) }}
+    {{ printf "%s/entrypoint.sh" (include "bootstrap.path" .) }}
 {{- end -}}
 
 {{- define "healthcheck.path" -}}
-    {{ printf "%s/healthcheck.sh" (include "scripts.path" .) }}
+    {{ printf "%s/healthcheck.sh" (include "bootstrap.path" .) }}
 {{- end -}}
