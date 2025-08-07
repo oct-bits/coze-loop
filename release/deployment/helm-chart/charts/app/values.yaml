@@ -11,6 +11,33 @@ image:
   pullPolicy: Always
   pullSecrets: "coze-loop-image-secret"
 
+init_image:
+  redis:
+    registry: "compose-cn-beijing.cr.volces.com"
+    repository: "library"
+    image: "redis"
+    tag: "latest"
+  mysql:
+    registry: "compose-cn-beijing.cr.volces.com"
+    repository: "library"
+    image: "mysql"
+    tag: "latest"
+  clickhouse:
+    registry: "compose-cn-beijing.cr.volces.com"
+    repository: "clickhouse"
+    image: "clickhouse-server"
+    tag: "latest"
+  minio:
+    registry: "compose-cn-beijing.cr.volces.com"
+    repository: "minio"
+    image: "minio"
+    tag: "latest"
+  rmq:
+    registry: "compose-cn-beijing.cr.volces.com"
+    repository: "rmq"
+    image: "rocketmq"
+    tag: "latest"
+
 deployment:
   replicaCount: 1
   terminationGracePeriodSeconds: 5

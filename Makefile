@@ -17,9 +17,12 @@ kb-del-%:
 	helm uninstall $(KB_DEPLOY_NAME)-$* -n $(KB_NAMESPACE)
 
 kb-log-%:
-	@echo "Getting logs for the latest coze-loop-app pod..."
-	@kubectl logs -n $(KB_NAMESPACE) --tail=100 -f \
-		$$(kubectl get pod -n $(KB_NAMESPACE) -l app=$(KB_DEPLOY_NAME)-$* -o jsonpath="{.items[0].metadata.name}")
+	@echo "Getting logs for the latest pod of $(KB_DEPLOY_NAME)-$* ..."
+	@POD=$$(kubectl get pod -n $(KB_NAMESPACE) -l app=$(KB_DEPLOY_NAME)-$* -o jsonpath='{.items[0].metadata.name}'); \
+	for c in $$(kubectl get pod $$POD -n $(KB_NAMESPACE) -o jsonpath='{.spec.initContainers[*].name} {.spec.containers[*].name}'); do \
+		echo "========== logs from container: $$c =========="; \
+		kubectl logs -n $(KB_NAMESPACE) -f $$POD -c $$c --tail=100; \
+	done
 
 kb-up-%:
 	helm upgrade \

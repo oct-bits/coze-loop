@@ -16,9 +16,27 @@ spec:
         - name: {{ .Values.image.pullSecrets }}
       terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
       volumes:
+        - name: redis-init
+          configMap:
+            name: redis-init-configmap
         - name: bootstrap
           configMap:
             name: {{ include "configmap.name" . }}
+      initContainers:
+        - name: wait-for-redis-init
+          image: {{ printf "%s/%s/%s:%s" .Values.init_image.redis.registry .Values.init_image.redis.repository .Values.init_image.redis.image .Values.init_image.redis.tag }}
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: redis-init
+              mountPath: "/coze-loop/bootstrap/init/redis"
+              readOnly: true
+          env:
+            - name: COZE_LOOP_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret.name" . }}
+                  key: redis-password
+          command: [ "/bin/sh", "/coze-loop/bootstrap/init/redis/init.sh" ]
       containers:
         - name: {{ include "application.name" . }}
           image: {{ include "image.fullname" . }}
