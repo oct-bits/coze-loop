@@ -15,7 +15,7 @@
 {{- end -}}
 
 {{- define "bootstrap.path" -}}
-    {{ printf "/coze-loop/bootstrap" (include "application.name" .) }}
+    {{ printf "/coze-loop/bootstrap" }}
 {{- end -}}
 
 {{- define "entrypoint.path" -}}

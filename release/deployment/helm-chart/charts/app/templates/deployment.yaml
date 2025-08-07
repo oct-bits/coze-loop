@@ -34,7 +34,7 @@ spec:
             - name: COZE_LOOP_REDIS_DOMAIN
               value: {{ .Values.env.redis.domain }}
             - name: COZE_LOOP_REDIS_PORT
-              value: {{ .Values.env.redis.port }}
+              value: {{ .Values.env.redis.port | quote }}
             - name: COZE_LOOP_REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -44,7 +44,7 @@ spec:
             - name: COZE_LOOP_MYSQL_DOMAIN
               value: {{ .Values.env.mysql.domain }}
             - name: COZE_LOOP_MYSQL_PORT
-              value: {{ .Values.env.mysql.port }}
+              value: {{ .Values.env.mysql.port | quote }}
             - name: COZE_LOOP_MYSQL_USER
               valueFrom:
                 secretKeyRef:
@@ -61,16 +61,16 @@ spec:
             - name: COZE_LOOP_CLICKHOUSE_DOMAIN
               value: {{ .Values.env.clickhouse.domain }}
             - name: COZE_LOOP_CLICKHOUSE_PORT
-              value: {{ .Values.env.clickhouse.port }}
+              value: {{ .Values.env.clickhouse.port | quote }}
             - name: COZE_LOOP_CLICKHOUSE_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "secret.name". }}
+                  name: {{ include "secret.name" . }}
                   key: clickhouse-user
             - name: COZE_LOOP_CLICKHOUSE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "secret.name". }}
+                  name: {{ include "secret.name" . }}
                   key: clickhouse-password
             - name: COZE_LOOP_CLICKHOUSE_DATABASE
               value: {{ .Values.env.clickhouse.database }}
@@ -80,18 +80,18 @@ spec:
             - name: COZE_LOOP_OSS_DOMAIN
               value: {{ .Values.env.oss.domain }}
             - name: COZE_LOOP_OSS_PORT
-              value: {{ .Values.env.oss.port }}
+              value: {{ .Values.env.oss.port | quote }}
             - name: COZE_LOOP_OSS_REGION
               value: {{ .Values.env.oss.region }}
             - name: COZE_LOOP_OSS_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "secret.name". }}
+                  name: {{ include "secret.name" . }}
                   key: oss-user
             - name: COZE_LOOP_OSS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "secret.name". }}
+                  name: {{ include "secret.name" . }}
                   key: oss-password
             - name: COZE_LOOP_OSS_BUCKET
               value: {{ .Values.env.oss.bucket }}
@@ -99,16 +99,16 @@ spec:
             - name: COZE_LOOP_RMQ_NAMESRV_DOMAIN
               value: {{ .Values.env.rmq.namesrv.domain }}
             - name: COZE_LOOP_RMQ_NAMESRV_PORT
-              value: {{ .Values.env.rmq.namesrv.port }}
+              value: {{ .Values.env.rmq.namesrv.port | quote }}
             - name: COZE_LOOP_RMQ_NAMESRV_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "secret.name". }}
+                  name: {{ include "secret.name" . }}
                   key: rmq-namesrv-user
             - name: COZE_LOOP_RMQ_NAMESRV_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "secret.name". }}
+                  name: {{ include "secret.name" . }}
                   key: rmq-namesrv-password
           command: [ "/bin/sh" ]
           args: [ {{ include "entrypoint.path" . | quote }} ]

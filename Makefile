@@ -13,6 +13,14 @@ kb-ns:
 kb-pod:
 	kubectl get pods -n $(KB_NAMESPACE)
 
+kb-del-%:
+	helm uninstall $(KB_DEPLOY_NAME)-$* -n $(KB_NAMESPACE)
+
+kb-log-%:
+	@echo "Getting logs for the latest coze-loop-app pod..."
+	@kubectl logs -n $(KB_NAMESPACE) --tail=100 -f \
+		$$(kubectl get pod -n $(KB_NAMESPACE) -l app=$(KB_DEPLOY_NAME)-$* -o jsonpath="{.items[0].metadata.name}")
+
 kb-up-%:
 	helm upgrade \
       --install --force $(KB_RELEASE_NAME)-$* $(KB_CHART_PATH)/$* \
@@ -56,17 +64,24 @@ down-v:
 	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --profile '*' down -v
 
 image:
-	@echo "Building coze-loop-app image..."
-	GOPROXY=https://go-mod-proxy.byted.org,https://goproxy.cn,https://proxy.golang.org,direct \
-	docker build \
+	@echo "Building and pushing multi-arch coze-loop images (amd64 + arm64)..."
+
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
 		--progress=plain \
+		--push \
 		-f ./release/image/Dockerfile \
-		-t open-coze-loop-app:latest \
+		-t compose-cn-beijing.cr.volces.com/coze/coze-loop:latest \
 		.
-	docker run --rm open-coze-loop-app:latest du -sh /coze-loop/bin
-	docker run --rm open-coze-loop-app:latest du -sh /coze-loop/resources
-	docker run --rm open-coze-loop-app:latest du -sh /coze-loop/conf
-	docker run --rm open-coze-loop-app:latest du -sh /coze-loop
+
+	@echo "Validating image size from coze-loop:latest (amd64 only)..."
+
+	docker pull compose-cn-beijing.cr.volces.com/coze/coze-loop:latest
+
+	docker run --rm coze-loop:latest du -sh /coze-loop/bin
+	docker run --rm coze-loop:latest du -sh /coze-loop/resources
+	docker run --rm coze-loop:latest du -sh /coze-loop/conf
+	docker run --rm coze-loop:latest du -sh /coze-loop
 
 clean-image:
 	docker rmi -f coze-loop-app:latest

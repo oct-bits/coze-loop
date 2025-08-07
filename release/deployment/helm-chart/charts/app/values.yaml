@@ -24,24 +24,24 @@ liveness:
 env:
   redis:
     domain: "coze-loop-redis"
-    port: 6379
+    port: "6379"
     password: "coze-loop"
   mysql:
     domain: "coze-loop-mysql"
-    port: 3306
+    port: "3306"
     user: "root"
     password: "coze-loop"
     database: "coze-loop"
   clickhouse:
     domain: "coze-loop-clickhouse"
-    port: 9000
+    port: "9000"
     user: "default"
     password: "coze-loop"
     database: "coze-loop"
   oss:
     protocol: "http"
     domain: "coze-loop-minio"
-    port: 9000
+    port: "9000"
     region: "us-east-1"
     user: "root"
     password: "coze-loop"
@@ -49,6 +49,6 @@ env:
   rmq:
     namesrv:
       domain: "coze-loop-rmq-namesrv"
-      port: 9876
+      port: "9876"
       user: ""
       password: ""

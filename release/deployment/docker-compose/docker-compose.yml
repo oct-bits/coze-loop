@@ -3,7 +3,7 @@ services:
   app:
     profiles: [ "app", "nginx" ]
     container_name: "coze-loop-app"
-    image: "open-coze-loop-app:latest"
+    image: "${COZE_LOOP_APP_IMAGE_REGISTRY}/${COZE_LOOP_APP_IMAGE_REPOSITORY}/${COZE_LOOP_APP_IMAGE_NAME}:${COZE_LOOP_APP_IMAGE_TAG}"
     restart: always
     networks:
       - coze-loop-network
