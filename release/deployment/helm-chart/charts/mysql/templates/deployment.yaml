@@ -44,7 +44,7 @@ spec:
                 secretKeyRef:
                   name: {{ include "secret.name" . }}
                   key: password
-            - name: COZELOOP_MYSQL_DATABASE
+            - name: COZE_LOOP_MYSQL_DATABASE
               value: {{ .Values.database.name }}
           command: [ "/bin/sh" ]
           args: [ {{ include "entrypoint.path" . | quote }} ]

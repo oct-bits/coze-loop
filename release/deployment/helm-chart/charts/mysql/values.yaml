@@ -27,4 +27,4 @@ auth:
   password: "coze-loop"
 
 database:
-  name: "cozeloop-mysql"
+  name: "coze-loop"

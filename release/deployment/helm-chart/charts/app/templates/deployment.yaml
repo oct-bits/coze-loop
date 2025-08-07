@@ -19,6 +19,12 @@ spec:
         - name: redis-init
           configMap:
             name: redis-init-configmap
+        - name: mysql-init
+          configMap:
+            name: mysql-init-configmap
+        - name: mysql-init-sql
+          configMap:
+            name: mysql-init-sql-configmap
         - name: bootstrap
           configMap:
             name: {{ include "configmap.name" . }}
@@ -28,7 +34,7 @@ spec:
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: redis-init
-              mountPath: "/coze-loop/bootstrap/init/redis"
+              mountPath: "/coze-loop-redis-init/bootstrap"
               readOnly: true
           env:
             - name: COZE_LOOP_REDIS_PASSWORD
@@ -36,7 +42,31 @@ spec:
                 secretKeyRef:
                   name: {{ include "secret.name" . }}
                   key: redis-password
-          command: [ "/bin/sh", "/coze-loop/bootstrap/init/redis/init.sh" ]
+          command: [ "/bin/sh", "/coze-loop-redis-init/bootstrap/entrypoint.sh" ]
+        - name: wait-for-mysql-init
+          image: {{ printf "%s/%s/%s:%s" .Values.init_image.mysql.registry .Values.init_image.mysql.repository .Values.init_image.mysql.image .Values.init_image.mysql.tag }}
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: mysql-init
+              mountPath: "/coze-loop-mysql-init/bootstrap"
+              readOnly: true
+            - name: mysql-init-sql
+              mountPath: "/coze-loop-mysql-init/bootstrap/init-sql"
+              readOnly: true
+          env:
+            - name: COZE_LOOP_MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret.name" . }}
+                  key: mysql-user
+            - name: COZE_LOOP_MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret.name" . }}
+                  key: mysql-password
+            - name: COZE_LOOP_MYSQL_DATABASE
+              value: {{ .Values.env.mysql.database }}
+          command: [ "/bin/sh", "/coze-loop-mysql-init/bootstrap/entrypoint.sh" ]
       containers:
         - name: {{ include "application.name" . }}
           image: {{ include "image.fullname" . }}
