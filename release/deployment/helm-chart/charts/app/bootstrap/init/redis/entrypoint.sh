@@ -3,7 +3,12 @@
 set -e
 
 for i in $(seq 1 60); do
-  if redis-cli -h coze-loop-redis -a "${COZE_LOOP_REDIS_PASSWORD}" --no-auth-warning ping | grep -q PONG; then
+  if redis-cli \
+      -h coze-loop-redis \
+      -a "${COZE_LOOP_REDIS_PASSWORD}" \
+      --no-auth-warning ping \
+      2>/dev/null \
+      | grep -q PONG; then
     echo "[INFO] Redis is ready"
     exit 0
   else

@@ -25,6 +25,12 @@ spec:
         - name: mysql-init-sql
           configMap:
             name: mysql-init-sql-configmap
+        - name: clickhouse-init
+          configMap:
+            name: clickhouse-init-configmap
+        - name: clickhouse-init-sql
+          configMap:
+            name: clickhouse-init-sql-configmap
         - name: bootstrap
           configMap:
             name: {{ include "configmap.name" . }}
@@ -67,6 +73,30 @@ spec:
             - name: COZE_LOOP_MYSQL_DATABASE
               value: {{ .Values.env.mysql.database }}
           command: [ "/bin/sh", "/coze-loop-mysql-init/bootstrap/entrypoint.sh" ]
+        - name: wait-for-clickhouse-init
+          image: {{ printf "%s/%s/%s:%s" .Values.init_image.clickhouse.registry .Values.init_image.clickhouse.repository .Values.init_image.clickhouse.image .Values.init_image.clickhouse.tag }}
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: clickhouse-init
+              mountPath: "/coze-loop-clickhouse-init/bootstrap"
+              readOnly: true
+            - name: clickhouse-init-sql
+              mountPath: "/coze-loop-clickhouse-init/bootstrap/init-sql"
+              readOnly: true
+          env:
+            - name: COZE_LOOP_CLICKHOUSE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret.name" . }}
+                  key: clickhouse-user
+            - name: COZE_LOOP_CLICKHOUSE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret.name" . }}
+                  key: clickhouse-password
+            - name: COZE_LOOP_CLICKHOUSE_DATABASE
+              value: {{ .Values.env.clickhouse.database }}
+          command: [ "/bin/sh", "/coze-loop-clickhouse-init/bootstrap/entrypoint.sh" ]
       containers:
         - name: {{ include "application.name" . }}
           image: {{ include "image.fullname" . }}
