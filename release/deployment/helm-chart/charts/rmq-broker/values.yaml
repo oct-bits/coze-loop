@@ -18,6 +18,6 @@ deployment:
 
 liveness:
   startSeconds: 10
-  intervalSeconds: 5
-  timeoutSeconds: 10
+  intervalSeconds: 8
+  timeoutSeconds: 15
   shutdownFailureTimes: 5
