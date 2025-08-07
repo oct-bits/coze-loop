@@ -16,7 +16,7 @@ print_banner() {
   printf "%s\n%s%s%s\n%s\n" "$line" "$side_eq" "$content" "$side_eq" "$line"
 }
 
-print_banner "Starting..."
+print_banner "Mysql Init Starting..."
 
 export MYSQL_PWD="${COZE_LOOP_MYSQL_PASSWORD}"
 
@@ -50,4 +50,4 @@ for file in $(ls /coze-loop-mysql-init/bootstrap/init-sql | grep '\.sql$'); do
   i=$((i + 1))
 done
 
-print_banner "Completed!"
+print_banner "Mysql Init Completed!"

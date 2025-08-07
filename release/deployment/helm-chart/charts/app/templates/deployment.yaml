@@ -31,6 +31,9 @@ spec:
         - name: clickhouse-init-sql
           configMap:
             name: clickhouse-init-sql-configmap
+        - name: minio-init
+          configMap:
+            name: minio-init-configmap
         - name: bootstrap
           configMap:
             name: {{ include "configmap.name" . }}
@@ -97,6 +100,27 @@ spec:
             - name: COZE_LOOP_CLICKHOUSE_DATABASE
               value: {{ .Values.env.clickhouse.database }}
           command: [ "/bin/sh", "/coze-loop-clickhouse-init/bootstrap/entrypoint.sh" ]
+        - name: wait-for-minio-init
+          image: {{ printf "%s/%s/%s:%s" .Values.init_image.minio.registry .Values.init_image.minio.repository .Values.init_image.minio.image .Values.init_image.minio.tag }}
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: minio-init
+              mountPath: "/coze-loop-minio-init/bootstrap"
+              readOnly: true
+          env:
+            - name: COZE_LOOP_OSS_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret.name" . }}
+                  key: oss-user
+            - name: COZE_LOOP_OSS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret.name" . }}
+                  key: oss-password
+            - name: COZE_LOOP_OSS_BUCKET
+              value: {{ .Values.env.oss.bucket }}
+          command: [ "/bin/sh", "/coze-loop-minio-init/bootstrap/entrypoint.sh" ]
       containers:
         - name: {{ include "application.name" . }}
           image: {{ include "image.fullname" . }}

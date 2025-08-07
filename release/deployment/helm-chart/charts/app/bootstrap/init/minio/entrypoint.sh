@@ -16,7 +16,7 @@ print_banner() {
   printf "%s\n%s%s%s\n%s\n" "$line" "$side_eq" "$content" "$side_eq" "$line"
 }
 
-print_banner "Starting..."
+print_banner "MinIO Init Starting..."
 
 for i in $(seq 1 60); do
   if curl \
@@ -42,4 +42,4 @@ else
   mc mb --quiet myminio/"${COZE_LOOP_OSS_BUCKET}"
 fi
 
-print_banner "Completed!"
+print_banner "MinIO Init Completed!"

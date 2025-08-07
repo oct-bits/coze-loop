@@ -16,7 +16,7 @@ print_banner() {
   printf "%s\n%s%s%s\n%s\n" "$line" "$side_eq" "$content" "$side_eq" "$line"
 }
 
-print_banner "Starting..."
+print_banner "Clickhouse Init Starting..."
 
 for i in $(seq 1 60); do
   if clickhouse-client \
@@ -55,4 +55,4 @@ for file in $(ls /coze-loop-clickhouse-init/bootstrap/init-sql | grep '\.sql$');
   i=$((i + 1))
 done
 
-print_banner "Completed!"
+print_banner "Clickhouse Init Completed!"
