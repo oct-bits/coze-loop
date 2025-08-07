@@ -18,12 +18,11 @@ print_banner() {
 
 print_banner "Starting..."
 
-mkdir -p /store/logs
+export ROCKETMQ_GO_LOG_LEVEL=error
 
 (
   while true; do
-    sleep 3
-    if sh /coze-loop-rmq-broker/bootstrap/healthcheck.sh; then
+    if sh /coze-loop/bootstrap/healthcheck.sh; then
       print_banner "Completed!"
       break
     else
@@ -32,4 +31,4 @@ mkdir -p /store/logs
   done
 )&
 
-exec "${ROCKETMQ_HOME}"/bin/mqbroker -n coze-loop-rmq-namesrv:9876
+/coze-loop/bin/main

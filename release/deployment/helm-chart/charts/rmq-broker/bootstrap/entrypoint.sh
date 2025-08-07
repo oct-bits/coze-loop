@@ -16,13 +16,6 @@ print_banner() {
   printf "%s\n%s%s%s\n%s\n" "$line" "$side_eq" "$content" "$side_eq" "$line"
 }
 
-rmq_home() {
-  base_dir="/home/rocketmq"
-  for d in "${base_dir}"/rocketmq-*; do
-    [ -d "$d" ] && echo "$d" && return
-  done
-}
-
 print_banner "Starting..."
 
 mkdir -p /store/logs
@@ -39,4 +32,4 @@ mkdir -p /store/logs
   done
 )&
 
-exec "$(rmq_home)"/bin/mqbroker -n coze-loop-rmq-namesrv:9876
+exec "${ROCKETMQ_HOME}"/bin/mqbroker -n coze-loop-rmq-namesrv:9876

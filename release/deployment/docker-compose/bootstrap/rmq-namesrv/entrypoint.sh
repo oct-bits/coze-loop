@@ -16,20 +16,12 @@ print_banner() {
   printf "%s\n%s%s%s\n%s\n" "$line" "$side_eq" "$content" "$side_eq" "$line"
 }
 
-rmq_home() {
-  base_dir="/home/rocketmq"
-  for d in "${base_dir}"/rocketmq-*; do
-    [ -d "$d" ] && echo "$d" && return
-  done
-}
-
 print_banner "Starting..."
 
 mkdir -p /store/logs
 
 (
   while true; do
-    sleep 3
     if sh /coze-loop-rmq-namesrv/bootstrap/healthcheck.sh; then
       print_banner "Completed!"
       break
@@ -39,4 +31,4 @@ mkdir -p /store/logs
   done
 )&
 
-exec "$(rmq_home)"/bin/mqnamesrv
+exec "${ROCKETMQ_HOME}"/bin/mqnamesrv
