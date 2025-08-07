@@ -14,14 +14,25 @@ spec:
     spec:
       imagePullSecrets:
         - name: {{ .Values.image.pullSecrets }}
-      volumes:
-        - name: etc
-          configMap:
-            name: {{ include "configmap-etc.name" . }}
-        - name: scripts
-          configMap:
-            name: {{ include "configmap-scripts.name" . }}
       terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
+      volumes:
+        - name: resources
+          emptyDir: { }
+        - name: bootstrap
+          configMap:
+            name: {{ include "configmap.name" . }}
+      initContainers:
+        - name: transfer-resources
+          image: {{ printf "%s/%s/%s:%s" .Values.init_image.app.registry .Values.init_image.app.repository .Values.init_image.app.image .Values.init_image.app.tag }}
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: resources
+              mountPath: {{ .Values.deployment.resourcesMountPath }}
+          command: [ "/bin/sh", "-c" ]
+          args:
+            - >
+              set -ex;
+              cp -r /coze-loop/resources/* {{ .Values.deployment.resourcesMountPath | quote }};
       containers:
         - name: {{ include "application.name" . }}
           image: {{ include "image.fullname" . }}
@@ -29,30 +40,26 @@ spec:
           ports:
             - containerPort: {{ .Values.service.targetPort }}
           volumeMounts:
-            - name: etc
-              mountPath: {{ include "etc.path" . }}
+            - name: resources
+              mountPath: {{ .Values.deployment.resourcesMountPath }}
               readOnly: true
-            - name: scripts
-              mountPath: {{ include "scripts.path" . }}
+            - name: bootstrap
+              mountPath: {{ include "bootstrap.path" . }}
               readOnly: true
           env:
-            - name: COZELOOP_INGRESS_PORT_POD
-              value: "{{ .Values.service.targetPort }}"
-            - name: COZELOOP_APP_HERTZ_ADDR_POD
-              value: {{ .Values.env.COZELOOP_APP_HERTZ_ADDR_POD }}
-            - name: COZELOOP_OSS_ADDR_POD
-              value: {{ .Values.env.COZELOOP_OSS_ADDR_POD }}
-            - name: COZELOOP_OSS_BUCKET
-              value: {{ .Values.env.COZELOOP_OSS_BUCKET }}
-            - name: COZELOOP_OSS_ADDR_POD_CUSTOMIZED
-              value: {{ .Values.env.COZELOOP_OSS_ADDR_POD_CUSTOMIZED }}
-            - name: COZELOOP_OSS_BUCKET_CUSTOMIZED
-              value: {{ .Values.env.COZELOOP_OSS_BUCKET_CUSTOMIZED }}
-          command: [ "/bin/bash" ]
-          args: [ "{{ include "entrypoint.path" . }}" ]
+            - name: COZE_LOOP_OSS_PROTOCOL
+              value: {{ .Values.proxy.oss.protocol }}
+            - name: COZE_LOOP_OSS_DOMAIN
+              value: {{ .Values.proxy.oss.domain }}
+            - name: COZE_LOOP_OSS_PORT
+              value: {{ .Values.proxy.oss.port | quote }}
+            - name: COZE_LOOP_OSS_BUCKET
+              value: {{ .Values.proxy.oss.bucket }}
+          command: [ "/bin/sh" ]
+          args: [ {{ include "entrypoint.path" . | quote }} ]
           livenessProbe:
             exec:
-              command: [ "/bin/sh", "{{ include "healthcheck.path" . }}" ]
+              command: [ "/bin/sh", {{ include "healthcheck.path" . | quote }} ]
             initialDelaySeconds: {{ .Values.liveness.startSeconds }}
             periodSeconds: {{ .Values.liveness.intervalSeconds }}
             timeoutSeconds: {{ .Values.liveness.timeoutSeconds }}

@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ include "configmap-etc.name" . }}
-data:
-  server.conf: |-
-{{ .Files.Get "etc/server.conf" | indent 4 }}

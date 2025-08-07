@@ -66,7 +66,7 @@ services:
       interval: 15s
       timeout: 5s
       retries: 30
-      start_period: 20s
+      start_period: 10s
 
   redis:
     profiles: [ "redis" ]
@@ -84,9 +84,9 @@ services:
     healthcheck:
       test: [ "CMD", "sh", "/coze-loop-redis/bootstrap/healthcheck.sh" ]
       interval: 5s
-      timeout: 3s
+      timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 5s
 
   mysql:
     profiles: [ "mysql" ]
@@ -108,7 +108,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 30s
+      start_period: 15s
 
   mysql-init:
     profiles: [ "mysql" ]
@@ -147,8 +147,8 @@ services:
       test: [ "CMD", "sh", "/coze-loop-clickhouse/bootstrap/healthcheck.sh" ]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 10s
 
   clickhouse-init:
     profiles: [ "clickhouse" ]
@@ -189,8 +189,8 @@ services:
       test: [ "CMD", "sh", "/coze-loop-minio/bootstrap/healthcheck.sh" ]
       interval: 15s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 10s
 
   minio-init:
     profiles: [ "minio" ]
@@ -225,9 +225,9 @@ services:
     healthcheck:
       test: [ "CMD", "sh", "/coze-loop-rmq-namesrv/bootstrap/healthcheck.sh" ]
       interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      timeout: 15s
+      retries: 5
+      start_period: 10s
 
   rocketmq-broker:
     profiles: [ "rmq" ]
@@ -247,9 +247,9 @@ services:
     healthcheck:
       test: [ "CMD", "sh", "/coze-loop-rmq-broker/bootstrap/healthcheck.sh" ]
       interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 90s
+      timeout: 15s
+      retries: 5
+      start_period: 20s
 
   rocketmq-init:
     profiles: [ "rmq" ]
@@ -290,7 +290,7 @@ services:
     entrypoint: [ "sh", "/coze-loop-nginx/bootstrap/entrypoint.sh" ]
     healthcheck:
       test: [ "CMD", "sh", "/coze-loop-nginx/bootstrap/healthcheck.sh" ]
-      interval: 60s
+      interval: 10s
       timeout: 3s
       retries: 5
       start_period: 10s
