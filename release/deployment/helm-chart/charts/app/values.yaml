@@ -34,7 +34,7 @@ init_image:
     tag: "latest"
   rmq:
     registry: "compose-cn-beijing.cr.volces.com"
-    repository: "rmq"
+    repository: "apache"
     image: "rocketmq"
     tag: "latest"
 

@@ -18,11 +18,25 @@ print_banner() {
 
 print_banner "Starting..."
 
+for i in $(seq 1 60); do
+  if "${ROCKETMQ_HOME}/bin/mqadmin" \
+      topicList \
+      -n coze-loop-rmq-namesrv:9876 \
+      > /dev/null 2>&1; then
+    break
+  else
+    sleep 1
+  fi
+  if [ "$i" -eq 60 ]; then
+    echo "[ERROR] RMQ namesrv not available after 60 time."
+    exit 1
+  fi
+done
+
 mkdir -p /store/logs
 
 (
   while true; do
-    sleep 3
     if sh /coze-loop-rmq-broker/bootstrap/healthcheck.sh; then
       print_banner "Completed!"
       break

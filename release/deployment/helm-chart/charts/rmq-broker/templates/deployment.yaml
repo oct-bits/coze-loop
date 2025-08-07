@@ -21,11 +21,6 @@ spec:
         - name: bootstrap
           configMap:
             name: {{ include "configmap.name" . }}
-      initContainers:
-        - name: wait-for-rmq-namesrv
-          image: {{ include "nc_image.fullname" . }}
-          imagePullPolicy: {{ .Values.nc_image.pullPolicy }}
-          command: [ "/bin/sh", "-c", "echo waiting for rmq-namesrv; until nc -z coze-loop-rmq-namesrv 9876; do echo waiting for rmq-namesrv; sleep 2; done" ]
       containers:
         - name: {{ include "application.name" . }}
           image: {{ include "image.fullname" . }}

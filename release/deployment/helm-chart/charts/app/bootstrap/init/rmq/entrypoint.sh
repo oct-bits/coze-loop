@@ -16,7 +16,7 @@ print_banner() {
   printf "%s\n%s%s%s\n%s\n" "$line" "$side_eq" "$content" "$side_eq" "$line"
 }
 
-print_banner "Starting..."
+print_banner "RMQ Init Starting..."
 
 MQADMIN_CMD="${ROCKETMQ_HOME}/bin/mqadmin"
 MQNAMESRV_ADDR=coze-loop-rmq-namesrv:9876
@@ -81,4 +81,4 @@ done
 
 wait
 
-print_banner "Completed!"
+print_banner "RMQ Init Completed!"

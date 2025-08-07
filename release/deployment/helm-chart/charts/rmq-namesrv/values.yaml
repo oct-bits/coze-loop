@@ -19,5 +19,5 @@ deployment:
 liveness:
   startSeconds: 5
   intervalSeconds: 5
-  timeoutSeconds: 3
+  timeoutSeconds: 10
   shutdownFailureTimes: 5

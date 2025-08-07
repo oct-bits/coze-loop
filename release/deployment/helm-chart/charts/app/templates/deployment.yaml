@@ -34,6 +34,12 @@ spec:
         - name: minio-init
           configMap:
             name: minio-init-configmap
+        - name: rmq-init
+          configMap:
+            name: rmq-init-configmap
+        - name: rmq-init-subscription
+          configMap:
+            name: rmq-init-subscription-configmap
         - name: bootstrap
           configMap:
             name: {{ include "configmap.name" . }}
@@ -121,6 +127,17 @@ spec:
             - name: COZE_LOOP_OSS_BUCKET
               value: {{ .Values.env.oss.bucket }}
           command: [ "/bin/sh", "/coze-loop-minio-init/bootstrap/entrypoint.sh" ]
+        - name: wait-for-rmq-init
+          image: {{ printf "%s/%s/%s:%s" .Values.init_image.rmq.registry .Values.init_image.rmq.repository .Values.init_image.rmq.image .Values.init_image.rmq.tag }}
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: rmq-init
+              mountPath: "/coze-loop-rmq-init/bootstrap"
+              readOnly: true
+            - name: rmq-init-subscription
+              mountPath: "/coze-loop-rmq-init/bootstrap/init-subscription"
+              readOnly: true
+          command: [ "/bin/bash", "/coze-loop-rmq-init/bootstrap/entrypoint.sh" ]
       containers:
         - name: {{ include "application.name" . }}
           image: {{ include "image.fullname" . }}
