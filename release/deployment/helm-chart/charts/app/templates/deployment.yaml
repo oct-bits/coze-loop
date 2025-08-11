@@ -53,11 +53,10 @@ spec:
         - name: bootstrap
           configMap:
             name: {{ include "configmap.name" . }}
+        - name: model-config
+          configMap:
+            name: "coze-loop-model-configmap"
             items:
-              - key: entrypoint.sh
-                path: entrypoint.sh
-              - key: healthcheck.sh
-                path: healthcheck.sh
               - key: model_config.yaml
                 path: model_config.yaml
       initContainers:
@@ -175,7 +174,7 @@ spec:
             - name: bootstrap
               mountPath: "/coze-loop/bootstrap"
               readOnly: true
-            - name: bootstrap
+            - name: model-config
               mountPath: "/coze-loop/conf/model_config.yaml"
               subPath: "model_config.yaml"
               readOnly: true
