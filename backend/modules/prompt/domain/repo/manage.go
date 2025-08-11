@@ -43,6 +43,8 @@ type ListPromptParam struct {
 
 	KeyWord    string
 	CreatedBys []string
+	UserID     string
+	CommittedOnly bool
 
 	PageNum  int
 	PageSize int

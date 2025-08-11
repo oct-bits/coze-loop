@@ -4,6 +4,7 @@
 package application
 
 import (
+	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/component/conf"
 	"context"
 	"fmt"
 	"strconv"
@@ -33,6 +34,7 @@ func NewPromptManageApplication(
 	authRPCProvider rpc.IAuthProvider,
 	userRPCProvider rpc.IUserProvider,
 	auditRPCProvider rpc.IAuditProvider,
+	configProvider conf.IConfigProvider,
 ) manage.PromptManageService {
 	return &PromptManageApplicationImpl{
 		manageRepo:       promptManageRepo,
@@ -40,6 +42,7 @@ func NewPromptManageApplication(
 		authRPCProvider:  authRPCProvider,
 		userRPCProvider:  userRPCProvider,
 		auditRPCProvider: auditRPCProvider,
+		configProvider:   configProvider,
 	}
 }
 
@@ -49,6 +52,7 @@ type PromptManageApplicationImpl struct {
 	authRPCProvider  rpc.IAuthProvider
 	userRPCProvider  rpc.IUserProvider
 	auditRPCProvider rpc.IAuditProvider
+	configProvider   conf.IConfigProvider
 }
 
 func (app *PromptManageApplicationImpl) CreatePrompt(ctx context.Context, request *manage.CreatePromptRequest) (r *manage.CreatePromptResponse, err error) {
@@ -234,6 +238,15 @@ func (app *PromptManageApplicationImpl) GetPrompt(ctx context.Context, request *
 
 	// 返回
 	r.Prompt = convertor.PromptDO2DTO(promptDO)
+
+	// 返回默认配置
+	if request.GetWithDefaultConfig() {
+		defaultConfig, err := app.configProvider.GetPromptDefaultConfig(ctx)
+		if err != nil {
+			return r, err
+		}
+		r.DefaultConfig = defaultConfig
+	}
 	return r, err
 }
 
@@ -268,7 +281,7 @@ func (app *PromptManageApplicationImpl) ListPrompt(ctx context.Context, request 
 	r = manage.NewListPromptResponse()
 
 	// 用户
-	_, ok := session.UserIDInCtx(ctx)
+	userID, ok := session.UserIDInCtx(ctx)
 	if !ok {
 		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("User not found"))
 	}
@@ -283,8 +296,10 @@ func (app *PromptManageApplicationImpl) ListPrompt(ctx context.Context, request 
 	listPromptParam := repo.ListPromptParam{
 		SpaceID: request.GetWorkspaceID(),
 
-		KeyWord:    request.GetKeyWord(),
-		CreatedBys: request.GetCreatedBys(),
+		KeyWord:       request.GetKeyWord(),
+		CreatedBys:    request.GetCreatedBys(),
+		UserID:        userID,
+		CommittedOnly: request.GetCommittedOnly(),
 
 		PageNum:  int(request.GetPageNum()),
 		PageSize: int(request.GetPageSize()),

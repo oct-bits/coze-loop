@@ -15,6 +15,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/infra/db"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/consts"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/infra/repo/evaluator/mysql/gorm_gen/model"
+	"github.com/coze-dev/coze-loop/backend/modules/evaluation/pkg/contexts"
 )
 
 // EvaluatorDAO 定义 Evaluator 的 Dao 接口
@@ -81,6 +82,9 @@ func (dao *EvaluatorDAOImpl) GetEvaluatorByID(ctx context.Context, id int64, inc
 // BatchGetEvaluatorByID 批量根据ID 获取 Evaluator
 func (dao *EvaluatorDAOImpl) BatchGetEvaluatorByID(ctx context.Context, ids []int64, includeDeleted bool, opts ...db.Option) ([]*model.Evaluator, error) {
 	// 通过opts获取当前的db session实例
+	if contexts.CtxWriteDB(ctx) {
+		opts = append(opts, db.WithMaster())
+	}
 	dbsession := dao.provider.NewSession(ctx, opts...)
 
 	poList := make([]*model.Evaluator, 0)
@@ -118,9 +122,9 @@ func (dao *EvaluatorDAOImpl) UpdateEvaluatorMeta(ctx context.Context, po *model.
 	updateMap["description"] = po.Description
 	updateMap["updated_by"] = po.UpdatedBy
 	return dbsession.WithContext(ctx).Model(&model.Evaluator{}).
-		Where("id = ?", po.ID).      // 添加ID筛选条件
+		Where("id = ?", po.ID). // 添加ID筛选条件
 		Where("deleted_at IS NULL"). // 添加软删除筛选条件
-		Updates(updateMap).          // 使用Updates代替Save，避免全字段覆盖
+		Updates(updateMap). // 使用Updates代替Save，避免全字段覆盖
 		Error
 }
 

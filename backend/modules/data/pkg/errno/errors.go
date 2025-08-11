@@ -20,6 +20,7 @@ type ErrorMsg string
 const (
 	DAOParamIsNilError        ErrorMsg = "dao param is nil"
 	DAOParamWithoutIndexError ErrorMsg = "at least one of the query params using index must be set"
+	DAOParamIsIllegalError    ErrorMsg = "dao param is illegal"
 )
 
 func (e ErrorMsg) Error() string {
@@ -304,4 +305,12 @@ func NewRetryableErr(err error) *RetryableErr {
 func IsRetryableErr(err error) bool {
 	re := &RetryableErr{}
 	return errors.As(err, &re)
+}
+
+func GetInternalErrorMsg(err error) string {
+	err1, sucess := errorx.FromStatusError(err)
+	if sucess {
+		return err1.Error()
+	}
+	return err.Error()
 }

@@ -146,7 +146,7 @@ func TestRuntimeImpl_Generate(t *testing.T) {
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				factMock := llmfactorymocks.NewMockIFactory(ctrl)
 				llmMock := llmifacemocks.NewMockILLM(ctrl)
-				factMock.EXPECT().CreateLLM(gomock.Any(), gomock.Any()).Return(llmMock, nil)
+				factMock.EXPECT().CreateLLM(gomock.Any(), gomock.Any(), gomock.Any()).Return(llmMock, nil)
 				llmMock.EXPECT().Generate(gomock.Any(), gomock.Any(), gomock.Any()).Return(&entity.Message{
 					Role:    entity.RoleAssistant,
 					Content: "there is content",
@@ -467,7 +467,7 @@ func TestRuntimeImpl_Stream(t *testing.T) {
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				factMock := llmfactorymocks.NewMockIFactory(ctrl)
 				llmMock := llmifacemocks.NewMockILLM(ctrl)
-				factMock.EXPECT().CreateLLM(gomock.Any(), gomock.Any()).Return(llmMock, nil)
+				factMock.EXPECT().CreateLLM(gomock.Any(), gomock.Any(), gomock.Any()).Return(llmMock, nil)
 				streamMock := &mockIStreamReader{
 					callTimes: 0,
 					recv: func(callTimes int) (*entity.Message, error) {
