@@ -1169,8 +1169,7 @@ func (e ExptResultServiceImpl) CalculateStats(ctx context.Context, exptID, space
 		total   = 0
 		cnt     = 0
 		icnt    = 0
-		itotal  = 0
-		ioffset = 0
+		ioffset = 1
 
 		pendingCnt      = 0
 		failCnt         = 0
@@ -1181,13 +1180,12 @@ func (e ExptResultServiceImpl) CalculateStats(ctx context.Context, exptID, space
 	)
 
 	for i := 0; i < maxLoop; i++ {
-		itemResultList, t, err := e.ExptItemResultRepo.ListItemResultsByExptID(ctx, exptID, spaceID, entity.NewPage(offset, limit), false)
+		itemResultList, iTotal, err := e.ExptItemResultRepo.ListItemResultsByExptID(ctx, exptID, spaceID, entity.NewPage(ioffset, limit), false)
 		if err != nil {
 			return nil, err
 		}
-		itotal += int(t)
 		icnt += len(itemResultList)
-		ioffset += offset
+		ioffset++
 		for _, item := range itemResultList {
 			switch item.Status {
 			case entity.ItemRunState_Success:
@@ -1203,7 +1201,7 @@ func (e ExptResultServiceImpl) CalculateStats(ctx context.Context, exptID, space
 			default:
 			}
 		}
-		if icnt >= itotal || len(itemResultList) == 0 {
+		if icnt >= int(iTotal) || len(itemResultList) == 0 {
 			break
 		}
 		time.Sleep(time.Millisecond * 30)
