@@ -7,5 +7,3 @@ data:
 {{ .Files.Get "bootstrap/entrypoint.sh" | nindent 4 }}
   healthcheck.sh: |-
 {{ .Files.Get "bootstrap/healthcheck.sh" | nindent 4 }}
-  model_config.yaml: |-
-{{ .Files.Get "bootstrap/model_config.yaml" | nindent 4 }}

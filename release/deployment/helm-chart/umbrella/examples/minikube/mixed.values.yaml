@@ -1,22 +1,26 @@
 ingress:
   host: open.coze-loop.minikube
-  type: nginx
-  className: nginx
+  type: vke
+  className: cozeloop-alb
+  instanceName: cozeloop-alb
 
 custom: &custom
   image:
-    registry: "compose-cn-beijing.cr.volces.com"
-    pullSecrets: "coze-loop-image-secret"
-  redis:
-    disabled: true
+    registry: "docker.io"
   mysql:
-    disabled: true
+    disabled: false
+    domain: "***"
+    port: "***"
+    user: "***"
+    password: "***"
+    database: "***"
   clickhouse:
-    disabled: true
-  oss:
-    disabled: true
-  rmq:
-    disabled: true
+    disabled: false
+    domain: "***"
+    port: "***"
+    user: "***"
+    password: "***"
+    database: "***"
 
 coze-loop-app:
   custom: *custom
