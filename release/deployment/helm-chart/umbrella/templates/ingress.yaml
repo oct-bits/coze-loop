@@ -1,4 +1,3 @@
-{{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -9,9 +8,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "1024m"
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     kubernetes.io/ingress.class: {{ .Values.ingress.className }}
-    {{- if ne .Values.ingress.className "nginx" }}
-    ingress.vke.volcengine.com/alb-instance-name: {{ .Values.ingress.className }}
-    {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
@@ -22,7 +18,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "application.name" . }}
+                name: {{ printf "%s-nginx" (include "application.name" .) }}
                 port:
-                  number: {{ .Values.service.port }}
-{{- end }}
+                  number: 8082

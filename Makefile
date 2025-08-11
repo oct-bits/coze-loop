@@ -1,94 +1,29 @@
-.PHONY: debug fe server sync_db dump_db middleware web down clean python help
-
-KB_NAMESPACE := coze-loop
-KB_RELEASE_NAME := coze-loop
-KB_DEPLOY_NAME := coze-loop
-KB_CHART_PATH :=./release/deployment/helm-chart/charts
-KB_UMBRELLA_PATH :=./release/deployment/helm-chart/umbrella
-
 DOCKER_COMPOSE_DIR := ./release/deployment/docker-compose
-#demo-mini:
-#	kubectl -n ingress-nginx patch svc ingress-nginx-controller -p '{"spec":{"type":"LoadBalancer"}}' service/ingress-nginx-controller patched \
-#    kubectl -n ingress-nginx get svc ingress-nginx-controller -w # 夯住
-#    sudo minikube tunnel # 新终端夯住
-#    # 第一个命令的EXTERNAL-IP配hosts
-#    curl -v http://127.0.0.1:18080 -H 'Host: cozeloop.mini.local' # 验证
 
+HELM_CHART_DIR := ./release/deployment/helm-chart/umbrella
+HELM_NAMESPACE := coze-loop
+HELM_RELEASE := coze-loop
 
+.PHONY: image mini-start mini-tunnel
 
-chart-tpl-alone-%:
-	helm template $(KB_RELEASE_NAME) $(KB_UMBRELLA_PATH) \
-		--namespace $(KB_NAMESPACE) \
-		-f $(KB_UMBRELLA_PATH)/examples/alone.values.yaml \
-		| yq eval '. | select(.kind == "Deployment" and .metadata.name == "coze-loop-$*")' -
+.PHONY: FORCE
+FORCE:
 
-chart-tpl-default-%:
-	helm template $(KB_RELEASE_NAME) $(KB_UMBRELLA_PATH) \
-		--namespace $(KB_NAMESPACE) \
-		-f $(KB_UMBRELLA_PATH)/examples/default.values.yaml \
-		| yq eval '. | select(.kind == "Deployment" and .metadata.name == "coze-loop-$*")' -
+image:
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--progress=plain \
+		--push \
+		-f ./release/image/Dockerfile \
+		-t compose-cn-beijing.cr.volces.com/coze/coze-loop:latest \
+		.
 
-chart-up-%:
-	helm upgrade \
-    	--install --force $(KB_RELEASE_NAME)-$* $(KB_UMBRELLA_PATH) \
-        --namespace $(KB_NAMESPACE) --create-namespace \
-        -f $(KB_UMBRELLA_PATH)/values.yaml \
-        -f $(KB_UMBRELLA_PATH)/examples/$*.values.yaml
+	docker pull compose-cn-beijing.cr.volces.com/coze/coze-loop:latest
 
-chart:
-	@echo "🔧 Building Helm dependencies for umbrella chart..."
-	helm dependency build $(KB_UMBRELLA_PATH)
-
-mini-ingress-on:
-	minikube addons enable ingress
-
-svc:
-	kubectl get svc -n $(KB_DEPLOY_NAME) -o wide
-
-ingress:
-	kubectl get ingress -n coze-loop
-
-kb-ctx:
-	kubectl config get-contexts
-kb-use-ctx-%:
-ifeq ($*,mini)
-	kubectl config use-context minikube
-else
-	kubectl config use-context $$(kubectl config get-contexts -o name | grep -v '^minikube$$')
-endif
-	kubectl config current-context
-
-kb-ns:
-	kubectl get namespaces
-
-kb-pod:
-	kubectl get pods -n $(KB_NAMESPACE)
-
-kb-del-%:
-	helm uninstall $(KB_DEPLOY_NAME)-$* -n $(KB_NAMESPACE)
-
-kb-log-%:
-	@echo "Getting logs for the latest pod of $(KB_DEPLOY_NAME)-$* ..."
-	@POD=$$(kubectl get pod -n $(KB_NAMESPACE) -l app=$(KB_DEPLOY_NAME)-$* -o jsonpath='{.items[0].metadata.name}'); \
-	for c in $$(kubectl get pod $$POD -n $(KB_NAMESPACE) -o jsonpath='{.spec.initContainers[*].name} {.spec.containers[*].name}'); do \
-		echo "========== logs from container: $$c =========="; \
-		kubectl logs -n $(KB_NAMESPACE) -f $$POD -c $$c --tail=100; \
-	done
-
-kb-up-%:
-	helm upgrade \
-      --install --force $(KB_RELEASE_NAME)-$* $(KB_CHART_PATH)/$* \
-      --namespace $(KB_NAMESPACE) --create-namespace \
-      -f $(KB_CHART_PATH)/$*/values.yaml && \
-    kubectl rollout status deployment/$(KB_DEPLOY_NAME)-$* -n $(KB_NAMESPACE) && \
-    POD=$$(kubectl get pod -n $(KB_NAMESPACE) -l app=$(KB_DEPLOY_NAME)-$* -o jsonpath='{.items[0].metadata.name}') && \
-    for c in $$(kubectl get pod $$POD -n $(KB_NAMESPACE) -o jsonpath='{.spec.initContainers[*].name} {.spec.containers[*].name}'); do \
-      echo "========== logs from container: $$c =========="; \
-      kubectl logs -n $(KB_NAMESPACE) -f $$POD -c $$c; \
-    done
-
-kb-clean:
-	helm list -n $(KB_NAMESPACE) -q | xargs -r -n1 helm uninstall -n $(KB_NAMESPACE)
+	docker run --rm coze-loop:latest du -sh /coze-loop/bin
+	docker run --rm coze-loop:latest du -sh /coze-loop/resources
+	docker run --rm coze-loop:latest du -sh /coze-loop/conf
+	docker run --rm coze-loop:latest du -sh /coze-loop
 
 compose%:
 	@case "$*" in \
@@ -170,106 +105,77 @@ compose%:
 	    exit 1 ;; \
 	esac
 
-debug:
-	docker compose \
-		-f ./release/deployment/docker-compose/docker-compose.yml \
-		-f ./release/deployment/docker-compose/debug/docker-compose.yml \
-		--env-file ./release/deployment/docker-compose/.env \
-		--profile "*" \
-		up --build
+helm%:
+	@case "$*" in \
+	  -chart) \
+	    helm dependency build $(HELM_CHART_DIR) ;; \
+	  -chart-clean) \
+		rm -rf $(HELM_CHART_DIR)/charts $(HELM_CHART_DIR)/Chart.lock ;; \
+	  -ctx) \
+	    kubectl config get-contexts ;; \
+	  -ctx-*) \
+		ctx="$*"; \
+		ctx="$${ctx#-ctx-}"; \
+		echo "switch to context: $$ctx"; \
+		kubectl config use-context "$$ctx" ;; \
+	  -ns) \
+	    kubectl get namespaces ;; \
+	  -pod) \
+	    kubectl get pods -n $(HELM_NAMESPACE) ;; \
+	  -svc) \
+	    kubectl get svc -n $(HELM_NAMESPACE) -o wide ;; \
+	  -ingress) \
+	    kubectl get ingress -n $(HELM_NAMESPACE) ;; \
+	  -up) \
+		helm upgrade \
+		  --install --force $(HELM_RELEASE) $(HELM_CHART_DIR) \
+		  --namespace $(HELM_NAMESPACE) --create-namespace \
+		  -f $(HELM_CHART_DIR)/values.yaml ;; \
+	  -down) \
+	    helm list -n $(HELM_NAMESPACE) -q \
+	    | \
+	    xargs -r -n1 helm uninstall -n $(HELM_NAMESPACE) ;; \
+	  -logf-*) \
+      	app="$*"; \
+      	app="$${app#-logf-}"; \
+      	kubectl -n $(HELM_NAMESPACE) logs \
+      	  -l app=$(HELM_RELEASE)-$$app \
+      	  --all-containers=true \
+      	  --tail=100 \
+      	  --prefix=true \
+		  --max-log-requests=10 \
+      	  -f ;; \
+	  -tpl-*) \
+      	app="$*"; \
+      	app="$${app#-tpl-}"; \
+      	helm template $(HELM_RELEASE) $(HELM_CHART_DIR) \
+      	  --namespace $(HELM_NAMESPACE) \
+      	  -f $(HELM_CHART_DIR)/values.yaml | \
+      	APP="$$app" yq eval '. | select(.kind == "Deployment" and .metadata.name == ("coze-loop-" + strenv(APP)))' - ;; \
+	  --help|*) \
+       	echo "Usage:"; \
+       	echo "  make helm-chart           # build chart dependencies (helm dependency build)"; \
+       	echo "  make helm-chart-clean     # remove chart dependencies"; \
+       	echo "  make helm-ctx             # list all kubectl contexts"; \
+       	echo "  make helm-ctx-<context>   # switch to a specific kubectl context"; \
+       	echo "  make helm-ns              # list all namespaces"; \
+       	echo "  make helm-pod             # list all pods in namespace $(HELM_NAMESPACE)"; \
+       	echo "  make helm-svc             # list all services in namespace $(HELM_NAMESPACE)"; \
+       	echo "  make helm-ingress         # list all ingress resources in namespace $(HELM_NAMESPACE)"; \
+       	echo "  make helm-up              # upgrade/install release $(HELM_RELEASE) from chart"; \
+       	echo "  make helm-down            # uninstall all releases in namespace $(HELM_NAMESPACE)"; \
+       	echo "  make helm-logf-<app>      # follow logs of all containers in pods with app=$(HELM_RELEASE)-<app>"; \
+       	echo "  make helm-tpl-<app>       # render Deployment manifest of coze-loop-<app> locally"; \
+       	echo; \
+       	echo "Notes:"; \
+       	echo "  - Ensure $(HELM_NAMESPACE) and $(HELM_RELEASE) are set before running commands."; \
+       	echo "  - Commands with '-<name>' suffix accept a dynamic argument (e.g., helm-ctx-xxx, helm-logf-app)."; \
+       	echo "  - '-tpl-*' renders manifests without applying them to the cluster."; \
+       	exit 1 ;; \
+	esac
 
-debug-app:
-	docker compose \
-		-f ./release/deployment/docker-compose/docker-compose.yml \
-		-f ./release/deployment/docker-compose/debug/remote/docker-compose.yml \
-		--env-file ./release/deployment/docker-compose/.env \
-		--profile "app" \
-		up
+mini-start:
+	minikube start --addons=ingress
 
-debug-compose:
-	docker compose \
-    		-f ./release/deployment/docker-compose/docker-compose.yml \
-    		-f ./release/deployment/docker-compose/debug/remote/docker-compose.yml \
-    		--profile "*" \
-    		config
-
-debug-down-v:
-	docker compose \
-    		-f ./release/deployment/docker-compose/docker-compose.yml \
-    		-f ./release/deployment/docker-compose/debug/docker-compose.yml \
-    		--profile "*" \
-    		down -v
-
-up:
-	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "*" up
-
-up-redis:
-	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "redis" up
-
-up-mysql:
-	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "mysql" up
-
-up-clickhouse:
-	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "clickhouse" up
-
-up-minio:
-	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "minio" up
-
-up-rmq:
-	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "rmq" up
-
-up-nginx:
-	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --env-file ./release/deployment/docker-compose/.env --profile "nginx" up
-
-down:
-	docker compose -f ./release/deployment/docker-compose/docker-compose.yml ---profile '*' down
-
-down-v:
-	docker compose -f ./release/deployment/docker-compose/docker-compose.yml --profile '*' down -v
-
-image:
-	@echo "Building and pushing multi-arch coze-loop images (amd64 + arm64)..."
-
-	docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--progress=plain \
-		--push \
-		-f ./release/image/Dockerfile \
-		-t compose-cn-beijing.cr.volces.com/coze/coze-loop:latest \
-		.
-
-	@echo "Validating image size from coze-loop:latest (amd64 only)..."
-
-	docker pull compose-cn-beijing.cr.volces.com/coze/coze-loop:latest
-
-	docker run --rm coze-loop:latest du -sh /coze-loop/bin
-	docker run --rm coze-loop:latest du -sh /coze-loop/resources
-	docker run --rm coze-loop:latest du -sh /coze-loop/conf
-	docker run --rm coze-loop:latest du -sh /coze-loop
-
-clean-image:
-	docker rmi -f coze-loop-app:latest
-	docker builder prune --force
-
-into-image:
-	docker run -it --rm open-coze-loop-app:latest /bin/bash
-
-clean-all:
-	@echo "Stopping containers..."
-	@docker ps -aq | xargs -r docker stop
-
-	@echo "Removing containers..."
-	@docker ps -aq | xargs -r docker rm -f
-
-	@echo "Removing images..."
-	@docker images -aq | xargs -r docker rmi -f
-
-	@echo "Removing volumes..."
-	@docker volume ls -q | xargs -r docker volume rm
-
-	@echo "Removing custom networks..."
-	@docker network ls | awk '/bridge|host|none/ {next} NR>1 {print $$1}' | xargs -r docker network rm
-
-	@echo "Pruning builder and system..."
-	@docker builder prune -a -f
-	@docker system prune -a --volumes -f
+mini-tunnel:
+	minikube tunnel

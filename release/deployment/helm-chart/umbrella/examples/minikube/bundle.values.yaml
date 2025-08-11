@@ -1,3 +1,8 @@
+ingress:
+  host: open.coze-loop.minikube
+  type: nginx
+  className: nginx
+
 custom: &custom
   image:
     registry: "compose-cn-beijing.cr.volces.com"
@@ -17,12 +22,6 @@ coze-loop-app:
   custom: *custom
 coze-loop-nginx:
   custom: *custom
-  service:
-    type: ClusterIP # minikube ClusterIP就行
-  ingress:
-    enabled: true
-    host: cozeloop.mini.local
-    className: nginx
 coze-loop-redis:
   custom: *custom
 coze-loop-mysql:
