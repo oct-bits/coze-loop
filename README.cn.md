@@ -41,24 +41,74 @@ Coze Loop 通过提供全生命周期的管理能力，帮助开发者更高效�
 ## 快速开始
 > 参考[快速开始](https://github.com/coze-dev/coze-loop/wiki/2.-%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B)，详细了解如何安装部署 Coze Loop 最新版本。
 环境要求：
-* 提前安装 Docker、Docker Compose，并启动 Docker 服务
+
+### 部署方式1：Docker 部署 (Docker Compose)
+> 请提前安装并启动 Docker Engine
+
 操作步骤：
 1. 获取源码。执行以下命令，获取 Coze Loop 最新版本的源码。
    ```Bash
    # 克隆代码
    git clone https://github.com/coze-dev/coze-loop.git
-   # 进入Coze Loop目录下
+   
+   # 进入coze-loop目录下
    cd coze-loop
    ```
-2. 配置模型。进入目录 `conf/default/app/runtime/`，编辑文件 `model_config.yaml`，修改 api_key 和 model 字段。以火山方舟为例：
-   * api_key：火山方舟 API Key，获取方式可参考[获取 API Key](Keyhttps://www.volcengine.com/docs/82379/1541594)。
-   * model：火山方舟模型接入点的 Endpoint ID，获取方式可参考[获取 Endpoint](https://www.volcengine.com/docs/82379/1099522)。
+2. 配置模型。
+   1. 进入 `coze-loop` 目录
+   2. 编辑文件 `release/deployment/docker-compose/model_config.yaml`
+   3. 修改 api_key 和 model 字段。以火山方舟为例：
+      - api_key：火山方舟 API Key，获取方式可参考[获取 API Key](Keyhttps://www.volcengine.com/docs/82379/1541594)。
+      - model：火山方舟模型接入点的 Endpoint ID，获取方式可参考[获取 Endpoint](https://www.volcengine.com/docs/82379/1099522)。
 3. 启动服务。执行以下命令，使用 Docker Compose 快速部署 Coze Loop 开源版。
-   ```Bash
+   ```shell
    # 启动服务，默认为开发模式
-   docker compose up --build
+   make compose-up # 在 coze-loop/目录下执行
    ```
-4. 通过浏览器访问 `http://localhost:8082`，访问 Coze Loop 开源版。
+4. 通过浏览器访问 Coze Loop 开源版 `http://localhost:8082`。
+
+### 部署方式2：Kubernetes 部署 (Helm Chart)
+> 请提前准备好 Kubernetes 集群 (需要开启 Nginx Ingress Addons)，并安装好 Kubectl 和 Helm 工具
+>
+>> 本部署方式同样支持 minikube 直接在PC机本地体验 Kubernetes 部署 (minikube 需提前启动并打开 tunnel)
+>> - 前置步骤可参考 [minikube部署注意事项](Keyhttps://www.volcengine.com/docs/82379/1541594)
+
+操作步骤：
+1. 获取 Helm Chart 包。执行一下命令。
+   ```Bash
+   # 拉取 Helm Chart 包
+   helm pull oci://registry-1.docker.io/coze-dev/coze-loop --version 1.0.0
+   
+   # 解压
+   tar -zxvf coze-loop-1.0.0.tgz
+   
+   # 删除压缩包
+   rm -f coze-loop-1.0.0.tgz
+   
+   # 进入 Helm Chart 目录
+   cd coze-loop
+   ```
+2. 配置模型。
+   1. 进入 `coze-loop` 目录
+   2. 编辑文件 `model_config.yaml`
+   3. 修改 api_key 和 model 字段。以火山方舟为例：
+      - api_key：火山方舟 API Key，获取方式可参考[获取 API Key](Keyhttps://www.volcengine.com/docs/82379/1541594)。
+      - model：火山方舟模型接入点的 Endpoint ID，获取方式可参考[获取 Endpoint](https://www.volcengine.com/docs/82379/1099522)。
+3. 启动服务。执行以下命令，使用 Helm 快速部署 Coze Loop 开源版。
+   ```shell
+   # 部署
+   make helm-up # 在 coze-loop/目录下执行
+   # 等待服务部署完成
+   make helm-pod # 查看集群pod状态
+   # nginx最终启动成功表示一切就绪
+   make helm-log-<svc-name> # 查看服务启动日志，svc-name: app, nginx, redis, mysql, clickhouse, minio, rmq-namesrv, rmq-broker
+   ```
+4. 通过浏览器访问 Coze Loop 开源版 `http://open.coze-loop.minikube`。
+
+定制：
+- 参考 `examples/minikube/` 目录下的三种配置示例
+- 将定制结果覆盖到 `values.yaml` 即可
+  - 其中域名 `open.coze-loop.minikube` 也可定制
 
 ## 使用 Coze Loop 开源版
 
@@ -70,7 +120,7 @@ Coze Loop 通过提供全生命周期的管理能力，帮助开发者更高效�
 ## 开发指南
 
 * [系统架构](https://github.com/coze-dev/coze-loop/wiki/3.-%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84)：了解Coze Loop 开源版的技术架构与核心组件。
-* [启动模式](https://github.com/coze-dev/coze-loop/wiki/4.-%E6%9C%8D%E5%8A%A1%E5%90%AF%E5%8A%A8%E6%A8%A1%E5%BC%8F)：安装部署Coze Loop 开源版时，默认使用开发模式，此模式下修改后端文件无需重新部署服务。
+* [启动模式](https://github.com/coze-dev/coze-loop/wiki/4.-%E6%9C%8D%E5%8A%A1%E5%90%AF%E5%8A%A8%E6%A8%A1%E5%BC%8F)：安装部署Coze Loop 开源版时，默认使用稳定模式，直接通过镜像启动，无需额外编译构建步骤。
 * [模型配置](https://github.com/coze-dev/coze-loop/wiki/5.-%E6%A8%A1%E5%9E%8B%E9%85%8D%E7%BD%AE)：Coze Loop 开源版通过 Eino 框架支持多种 LLM 模型，参考此文档查看支持的模型列表，了解如何配置模型。
 * [代码开发与测试](https://github.com/coze-dev/coze-loop/wiki/6.-%E4%BB%A3%E7%A0%81%E5%BC%80%E5%8F%91%E4%B8%8E%E6%B5%8B%E8%AF%95)：了解如何基于Coze Loop 开源版进行二次开发与测试。
 * [故障排查](https://github.com/coze-dev/coze-loop/wiki/7.-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5)：了解如何查看容器状态、系统日志。

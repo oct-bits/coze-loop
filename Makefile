@@ -33,6 +33,13 @@ compose%:
 	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
 	      --profile "*" \
 	      up ;; \
+	  -restart-*) \
+	    svc="$*"; \
+	    svc="$${svc#-restart-}"; \
+	    docker compose \
+	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
+	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
+	      restart "$$svc" ;; \
 	  -down) \
 	    docker compose \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
@@ -179,3 +186,8 @@ mini-start:
 
 mini-tunnel:
 	minikube tunnel
+
+chart-%:
+	@helm package $(HELM_CHART_DIR) --version $*
+	@helm push $(HELM_RELEASE)-$*.tgz oci://compose-cn-beijing.cr.volces.com/coze
+	@rm -f $(HELM_RELEASE)-$*.tgz

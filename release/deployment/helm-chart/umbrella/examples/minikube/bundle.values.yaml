@@ -1,3 +1,5 @@
+# 基础服务：全部使用基础镜像
+
 ingress:
   host: open.coze-loop.minikube
   type: nginx

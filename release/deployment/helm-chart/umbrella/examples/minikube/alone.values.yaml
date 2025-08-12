@@ -1,3 +1,5 @@
+# 基础服务：全部使用自定义连接源
+
 ingress:
   host: open.coze-loop.minikube
   type: nginx
