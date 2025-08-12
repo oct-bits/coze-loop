@@ -12,10 +12,12 @@ import (
 	"github.com/samber/lo"
 )
 
-type AnnotationType string
-type AnnotationValueType string
-type AnnotationCorrectionType string
-type AnnotationStatus string
+type (
+	AnnotationType           string
+	AnnotationValueType      string
+	AnnotationCorrectionType string
+	AnnotationStatus         string
+)
 
 const (
 	AnnotationValueTypeString AnnotationValueType = "string"

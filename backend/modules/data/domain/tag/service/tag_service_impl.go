@@ -80,7 +80,9 @@ func (s *TagServiceImpl) CreateTag(ctx context.Context, spaceID int64, val *enti
 			logs.CtxWarn(ctx, "[CreateTag] other create operation is processing, spaceID: %d, tagKayName: %v", val.SpaceID, val.TagKeyName)
 			return 0, errno.InvalidParamErrorf("other create operation is processing")
 		}
-		defer s.locker.Unlock(FormatCreateTagKey(val.SpaceID, val.TagKeyName))
+		defer func() {
+			_, _ = s.locker.Unlock(FormatCreateTagKey(val.SpaceID, val.TagKeyName))
+		}()
 
 		// check tag key name
 		exist, err := s.isTagNameExisted(ctx, spaceID, 0, val.TagKeyName)
@@ -294,7 +296,9 @@ func (s *TagServiceImpl) UpdateTag(ctx context.Context, spaceID, tagKeyID int64,
 		logs.CtxWarn(ctx, "[UpdateTag] other updating operation is processing, spaceID: %d, tagKeyID: %d", spaceID, tagKeyID)
 		return errno.InvalidParamErrorf("other updating operation is processing")
 	}
-	defer s.locker.Unlock(FormatUpdateTagKey(spaceID, tagKeyID))
+	defer func() {
+		_, _ = s.locker.Unlock(FormatUpdateTagKey(spaceID, tagKeyID))
+	}()
 	// get lastest tag
 	preTagKey, err := s.GetLatestTag(ctx, spaceID, tagKeyID, append(opts, db.WithMaster())...)
 	if err != nil {
@@ -377,7 +381,9 @@ func (s *TagServiceImpl) UpdateTagStatus(ctx context.Context, spaceID, tagKeyID 
 			logs.CtxWarn(ctx, "[UpdateTagStatus] other updating operation is processing, spaceID: %d, tagKeyID: %d", spaceID, tagKeyID)
 			return errno.InvalidParamErrorf("other updating operation is processing")
 		}
-		defer s.locker.Unlock(FormatUpdateTagKey(spaceID, tagKeyID))
+		defer func() {
+			_, _ = s.locker.Unlock(FormatUpdateTagKey(spaceID, tagKeyID))
+		}()
 	}
 
 	// 更新
@@ -405,7 +411,9 @@ func (s *TagServiceImpl) UpdateTagStatusWithNewVersion(ctx context.Context, spac
 		logs.CtxWarn(ctx, "[UpdateTagStatusWithNewVersion] other updating operation is processing, spaceID: %d, tagKeyID: %d", spaceID, tagKeyID)
 		return errno.InvalidParamErrorf("other udpating operation is processing")
 	}
-	defer s.locker.Unlock(FormatUpdateTagKey(spaceID, tagKeyID))
+	defer func() {
+		_, _ = s.locker.Unlock(FormatUpdateTagKey(spaceID, tagKeyID))
+	}()
 	// get latest tag
 	preTagKey, err := s.GetLatestTag(ctx, spaceID, tagKeyID, db.WithMaster())
 	if err != nil {

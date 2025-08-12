@@ -219,7 +219,7 @@ func MaybeWrapf(cause error, code int32, msgAndArgs ...any) error {
 		if len(msgAndArgs) == 0 {
 			return cause
 		}
-		return errors.Wrapf(cause, messageFromMsgAndArgs(msgAndArgs...))
+		return errors.Wrapf(cause, "%s", messageFromMsgAndArgs(msgAndArgs...))
 	}
 
 	return Wrapf(cause, code, msgAndArgs...)

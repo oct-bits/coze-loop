@@ -35,7 +35,7 @@ func TestWhereBuilder(t *testing.T) {
 	p := NewTestDB(t, &somePO{})
 	session := p.NewSession(context.TODO())
 	session.DryRun = true
-	var res = make(map[string]any)
+	res := make(map[string]any)
 	got := session.Select("*").Table(`x`).Where(where).Find(&res).Statement.SQL.String()
 	want := "SELECT * FROM `x` WHERE `col_1` = ? AND `col_3` IN (?,?,?) AND `col_5` > ? AND `col_7` <= ? AND col_9 LIKE ? ESCAPE '\\\\'"
 	assert.Equal(t, want, got)

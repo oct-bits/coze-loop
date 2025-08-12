@@ -33,12 +33,11 @@ import (
 
 func TestPromptManageApplicationImpl_ClonePrompt(t *testing.T) {
 	type fields struct {
-		manageRepo       repo.IManageRepo
-		promptService    service.IPromptService
-		authRPCProvider  rpc.IAuthProvider
-		userRPCProvider  rpc.IUserProvider
-		auditRPCProvider rpc.IAuditProvider
-		configProvider   conf.IConfigProvider
+		manageRepo      repo.IManageRepo
+		promptService   service.IPromptService
+		authRPCProvider rpc.IAuthProvider
+		userRPCProvider rpc.IUserProvider
+		configProvider  conf.IConfigProvider
 	}
 	type args struct {
 		ctx     context.Context

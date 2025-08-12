@@ -4,10 +4,11 @@
 package application
 
 import (
-	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/component/conf"
 	"context"
 	"fmt"
 	"strconv"
+
+	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/component/conf"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/samber/lo"

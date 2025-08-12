@@ -39,5 +39,10 @@ func mustInitConsumerWorkers(
 		panic(err)
 	}
 	workers, err = obconsumer.NewConsumerWorkers(loader, obApplication)
+	if err != nil {
+		panic(err)
+	}
+	res = append(res, workers...)
+
 	return res
 }

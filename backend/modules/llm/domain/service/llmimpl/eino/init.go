@@ -5,8 +5,9 @@ package eino
 
 import (
 	"context"
-	arkmodel "github.com/volcengine/volcengine-go-sdk/service/arkruntime/model"
 	"time"
+
+	arkmodel "github.com/volcengine/volcengine-go-sdk/service/arkruntime/model"
 
 	ori_qianfan "github.com/baidubce/bce-qianfan-sdk/go/qianfan"
 	"github.com/bytedance/sonic"
@@ -247,7 +248,7 @@ func geminiBuilder(ctx context.Context, model *entity.Model, opts ...entity.Opti
 		TopP:        ops.TopP,
 	}
 	if ops.TopK != nil {
-		cfg.TopK = ptr.Of(int32(*ops.TopK))
+		cfg.TopK = ptr.Of(*ops.TopK)
 	}
 	if pc := p.ProtocolConfigGemini; pc != nil {
 		if pc.ResponseSchema != nil && *pc.ResponseSchema != "" {

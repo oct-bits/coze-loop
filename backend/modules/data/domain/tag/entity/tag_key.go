@@ -340,9 +340,7 @@ func (t *TagKey) CalculateChangeLogs(preTagKey *TagKey) ([]*ChangeLog, error) {
 	if t == nil {
 		return nil, errors.New("tag key is nil")
 	}
-	var (
-		res []*ChangeLog
-	)
+	var res []*ChangeLog
 	// tag key
 	// create
 	if preTagKey == nil {
@@ -444,7 +442,7 @@ func (t *TagKey) CalculateChangeLogs(preTagKey *TagKey) ([]*ChangeLog, error) {
 func validateTagValues(val []*TagValue, maxHeight, maxWidth int) error {
 	now := make([]*TagValue, 0)
 	fallBacks := make([]*TagValue, 0)
-	for idx, _ := range val {
+	for idx := range val {
 		if val[idx].TagValueName != consts.FallbackTagValueDefaultName && !val[idx].IsSystem {
 			now = append(now, val[idx])
 		} else {
@@ -480,7 +478,7 @@ func validateTagValues(val []*TagValue, maxHeight, maxWidth int) error {
 				return err
 			}
 			mp[tagValueName] = true
-			for idx, _ := range value.Children {
+			for idx := range value.Children {
 				if value.Children[idx].TagValueName != consts.FallbackTagValueDefaultName && !value.Children[idx].IsSystem {
 					next = append(next, value.Children[idx])
 				}

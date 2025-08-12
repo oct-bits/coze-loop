@@ -211,7 +211,7 @@ func TestEvaluatorRecordServiceImpl_CorrectEvaluatorRecord(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // capture range variable
+		tt := tt                            // capture range variable
 		t.Run(tt.name, func(t *testing.T) { // 使用 t.Run
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()

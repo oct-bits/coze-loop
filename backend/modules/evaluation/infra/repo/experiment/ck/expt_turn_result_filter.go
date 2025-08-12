@@ -394,19 +394,20 @@ func (d *exptTurnResultFilterDAOImpl) buildItemSnapshotConditions(cond *ExptTurn
 
 	// string_map
 	for _, f := range cond.ItemSnapshotCond.StringMapFilters {
-		if f.Op == "LIKE" {
+		switch f.Op {
+		case "LIKE":
 			// 删除 mapContains 条件
 			*joinSQL += fmt.Sprintf(" AND dis.string_map{'%s'} LIKE ?", f.Key)
 			*args = append(*args, "%"+escapeSpecialChars(fmt.Sprintf("%v", f.Values[0]))+"%")
-		} else if f.Op == "=" {
+		case "=":
 			// 删除 mapContains 条件
 			*joinSQL += fmt.Sprintf(" AND dis.string_map{'%s'} = ?", f.Key)
 			*args = append(*args, f.Values[0])
-		} else if f.Op == "NOT LIKE" {
+		case "NOT LIKE":
 			// 删除 mapContains 条件
 			*joinSQL += fmt.Sprintf(" AND dis.string_map{'%s'} NOT LIKE ?", f.Key)
 			*args = append(*args, "%"+escapeSpecialChars(fmt.Sprintf("%v", f.Values[0]))+"%")
-		} else if f.Op == "!=" {
+		case "!=":
 			// 删除 mapContains 条件
 			*joinSQL += fmt.Sprintf(" AND dis.string_map{'%s'}!=?", f.Key)
 			*args = append(*args, f.Values[0])
@@ -471,9 +472,10 @@ func (d *exptTurnResultFilterDAOImpl) buildKeywordSearchConditions(ctx context.C
 		}
 		// bool_map
 		boolVal := 0
-		if kw == "true" {
+		switch kw {
+		case "true":
 			boolVal = 1
-		} else if kw == "false" {
+		case "false":
 			boolVal = 0
 		}
 		if kw == "true" || kw == "false" {
