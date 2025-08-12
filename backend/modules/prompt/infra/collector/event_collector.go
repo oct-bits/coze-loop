@@ -21,6 +21,4 @@ func NewEventCollectorProvider() ICollectorProvider {
 }
 
 func (c *EventCollectorProviderImpl) CollectPromptHubEvent(ctx context.Context, spaceID int64, prompts []*entity.Prompt) {
-	// 空实现，可扩展
-	return
 }

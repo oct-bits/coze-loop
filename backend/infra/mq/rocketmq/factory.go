@@ -132,12 +132,15 @@ func (c *customResolver) Description() string {
 func getRmqNamesrvDomain() string {
 	return os.Getenv("COZE_LOOP_RMQ_NAMESRV_DOMAIN")
 }
+
 func getRmqNamesrvPort() string {
 	return os.Getenv("COZE_LOOP_RMQ_NAMESRV_PORT")
 }
+
 func getRmqNamesrvUser() string {
 	return os.Getenv("COZE_LOOP_RMQ_NAMESRV_USER")
 }
+
 func getRmqNamesrvPassword() string {
 	return os.Getenv("COZE_LOOP_RMQ_NAMESRV_PASSWORD")
 }

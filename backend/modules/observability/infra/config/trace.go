@@ -96,7 +96,7 @@ func (t *TraceConfigCenter) GetTraceFieldMetaInfo(ctx context.Context) (*config.
 }
 
 func (t *TraceConfigCenter) GetTraceDataMaxDurationDay(ctx context.Context, platformPtr *string) int64 {
-	var defaultDuration = int64(7)
+	defaultDuration := int64(7)
 	if platformPtr == nil {
 		return defaultDuration
 	}

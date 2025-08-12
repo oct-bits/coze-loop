@@ -52,7 +52,6 @@ func (c *Consumer) Start() error {
 		}
 		return consumer.ConsumeSuccess, nil
 	})
-
 	if err != nil {
 		return fmt.Errorf("consumer subscribe err: %w", err)
 	}

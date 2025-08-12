@@ -414,7 +414,7 @@ func ConvertExptTurnResultFilterAccelerator(experimentFilter *domain_expt.Experi
 				result.MapCond.EvaluatorScoreFilters = append(result.MapCond.EvaluatorScoreFilters, fieldFilter)
 			case domain_expt.FieldType_ItemRunState:
 				result.ItemRunStatus = append(result.ItemRunStatus, fieldFilter)
-			//case domain_expt.FieldType_TurnRunState: // turn_run_state废弃
+			// case domain_expt.FieldType_TurnRunState: // turn_run_state废弃
 			//	state, err := parseTurnRunState(filterCondition)
 			//	if err!= nil {
 			//		logs.CtxError(context.Background(), "parseTurnRunState fail, err: %v", err)

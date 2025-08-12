@@ -111,7 +111,7 @@ func Init(
 	if err != nil {
 		return nil, err
 	}
-	observabilityHandler.ITraceIngestionApplication.RunAsync(ctx)
+	observabilityHandler.RunAsync(ctx)
 
 	return &apis.APIHandler{
 		PromptHandler:        promptHandler,

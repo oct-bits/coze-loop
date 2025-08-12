@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 	"github.com/coze-dev/coze-loop/backend/pkg/logs"
-	"github.com/bytedance/sonic"
 	"github.com/samber/lo"
 )
 

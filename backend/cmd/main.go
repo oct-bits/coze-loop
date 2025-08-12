@@ -7,10 +7,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/bytedance/gg/gptr"
 	"net/url"
 	"os"
 	"time"
+
+	"github.com/bytedance/gg/gptr"
 
 	_ "github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/coze-dev/cozeloop-go"
@@ -267,9 +268,11 @@ func newComponent(ctx context.Context) (*component, error) {
 func getRedisDomain() string {
 	return os.Getenv("COZE_LOOP_REDIS_DOMAIN")
 }
+
 func getRedisPort() string {
 	return os.Getenv("COZE_LOOP_REDIS_PORT")
 }
+
 func getRedisPassword() string {
 	return os.Getenv("COZE_LOOP_REDIS_PASSWORD")
 }
@@ -277,15 +280,19 @@ func getRedisPassword() string {
 func getMysqlDomain() string {
 	return os.Getenv("COZE_LOOP_MYSQL_DOMAIN")
 }
+
 func getMysqlPort() string {
 	return os.Getenv("COZE_LOOP_MYSQL_PORT")
 }
+
 func getMysqlUser() string {
 	return os.Getenv("COZE_LOOP_MYSQL_USER")
 }
+
 func getMysqlPassword() string {
 	return os.Getenv("COZE_LOOP_MYSQL_PASSWORD")
 }
+
 func getMysqlDatabase() string {
 	return os.Getenv("COZE_LOOP_MYSQL_DATABASE")
 }
@@ -293,15 +300,19 @@ func getMysqlDatabase() string {
 func getClickhouseDomain() string {
 	return os.Getenv("COZE_LOOP_CLICKHOUSE_DOMAIN")
 }
+
 func getClickhousePort() string {
 	return os.Getenv("COZE_LOOP_CLICKHOUSE_PORT")
 }
+
 func getClickhouseUser() string {
 	return os.Getenv("COZE_LOOP_CLICKHOUSE_USER")
 }
+
 func getClickhousePassword() string {
 	return os.Getenv("COZE_LOOP_CLICKHOUSE_PASSWORD")
 }
+
 func getClickhouseDatabase() string {
 	return os.Getenv("COZE_LOOP_CLICKHOUSE_DATABASE")
 }
@@ -309,24 +320,31 @@ func getClickhouseDatabase() string {
 func getOssProtocol() string {
 	return os.Getenv("COZE_LOOP_OSS_PROTOCOL")
 }
+
 func getOssDomain() string {
 	return os.Getenv("COZE_LOOP_OSS_DOMAIN")
 }
+
 func getOssPort() string {
 	return os.Getenv("COZE_LOOP_OSS_PORT")
 }
+
 func getOssUser() string {
 	return os.Getenv("COZE_LOOP_OSS_USER")
 }
+
 func getOssPassword() string {
 	return os.Getenv("COZE_LOOP_OSS_PASSWORD")
 }
+
 func getOssRegion() string {
 	return os.Getenv("COZE_LOOP_OSS_REGION")
 }
+
 func getOssBucket() string {
 	return os.Getenv("COZE_LOOP_OSS_BUCKET")
 }
+
 func getOssForcePathStyle() *bool {
 	if getOssDomain() == "coze-loop-minio" {
 		return gptr.Of(true)

@@ -200,7 +200,6 @@ func TestTagApplicationImpl_GetTagSpec(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestTagApplicationImpl_BatchGetTags(t *testing.T) {

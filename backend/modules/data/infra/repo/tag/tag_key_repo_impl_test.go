@@ -26,7 +26,9 @@ func TestTagRepoImpl_MCreateTagKeys(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").
@@ -123,7 +125,9 @@ func TestTagRepoImpl_GetTagKey(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").
@@ -178,7 +182,9 @@ func TestTagRepoImpl_MGetTagKeys(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").
@@ -246,7 +252,9 @@ func TestTagRepoImpl_PatchTagKey(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").
@@ -359,7 +367,9 @@ func TestTagRepoImpl_DeleteTagKey(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").
@@ -451,7 +461,9 @@ func TestTagRepoImpl_UpdateTagKeysStatus(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").
@@ -536,7 +548,9 @@ func TestTagRepoImpl_CountTagKeys(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").

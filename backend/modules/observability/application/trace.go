@@ -7,6 +7,8 @@ import (
 	"context"
 	"strconv"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/coze-dev/coze-loop/backend/infra/external/benefit"
 	"github.com/coze-dev/coze-loop/backend/infra/middleware/session"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/observability/domain/common"
@@ -19,7 +21,6 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/observability/domain/component/config"
 	"github.com/coze-dev/coze-loop/backend/modules/observability/domain/component/metrics"
 	"github.com/coze-dev/coze-loop/backend/modules/observability/domain/component/rpc"
-	rpcdo "github.com/coze-dev/coze-loop/backend/modules/observability/domain/component/rpc"
 	commdo "github.com/coze-dev/coze-loop/backend/modules/observability/domain/trace/entity/common"
 	"github.com/coze-dev/coze-loop/backend/modules/observability/domain/trace/entity/loop_span"
 	"github.com/coze-dev/coze-loop/backend/modules/observability/domain/trace/repo"
@@ -29,7 +30,6 @@ import (
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/goroutine"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 	"github.com/coze-dev/coze-loop/backend/pkg/logs"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -716,7 +716,7 @@ func (t *TraceApplication) ListAnnotations(ctx context.Context, req *trace.ListA
 }
 
 func (t *TraceApplication) getAnnoDisplayInfo(ctx context.Context, workspaceId int64, userIds []string, evalIds []int64, tagKeyIds []string,
-) (userMap map[string]*commdo.UserInfo, evalMap map[int64]*rpcdo.Evaluator, tagMap map[int64]*rpcdo.TagInfo) {
+) (userMap map[string]*commdo.UserInfo, evalMap map[int64]*rpc.Evaluator, tagMap map[int64]*rpc.TagInfo) {
 	if len(userIds) == 0 && len(tagKeyIds) == 0 && len(evalIds) == 0 {
 		return
 	}

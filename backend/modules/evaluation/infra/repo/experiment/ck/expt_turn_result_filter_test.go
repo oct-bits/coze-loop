@@ -281,7 +281,6 @@ func TestExptTurnResultFilterDAOImpl_buildGetByExptIDItemIDsSQL(t *testing.T) {
 }
 
 func TestExptTurnResultFilterDAOImpl_parseOutput(t *testing.T) {
-
 	ctx := context.Background()
 	tests := []struct {
 		name string

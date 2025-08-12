@@ -26,7 +26,9 @@ func TestTagRepoImpl_MCreateTagValues(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").
@@ -126,7 +128,9 @@ func TestTagRepoImpl_GetTagValue(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").
@@ -190,7 +194,9 @@ func TestTagRepoImpl_MGetTagValues(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").
@@ -260,7 +266,9 @@ func TestTagRepoImpl_PatchTagValue(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").
@@ -373,7 +381,9 @@ func TestTagRepoImpl_DeleteTagValue(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").
@@ -451,7 +461,9 @@ func TestTagRepoImpl_UpdateTagValuesStatus(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	rows := sqlmock.NewRows([]string{"version"}).
 		AddRow("8.0.26") // 根据实际情况填写数据库版本
 	mock.ExpectQuery("SELECT VERSION()").
