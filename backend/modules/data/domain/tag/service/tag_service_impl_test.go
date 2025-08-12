@@ -285,7 +285,6 @@ func TestTagServiceImpl_CreateTag(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestTagServiceImpl_GetAllTagKeyVersionsByKeyID(t *testing.T) {
@@ -710,7 +709,6 @@ func TestTagServiceImpl_UpdateTag(t *testing.T) {
 					return fn(&gorm.DB{Config: &gorm.Config{}})
 				}).Times(2)
 				tagRepo.EXPECT().UpdateTagKeysStatus(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("123"))
-
 			},
 			wantErr: true,
 		},
@@ -906,7 +904,6 @@ func TestTagServiceImpl_UpdateTagStatus(t *testing.T) {
 				})
 				tagRepo.EXPECT().UpdateTagKeysStatus(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				tagRepo.EXPECT().UpdateTagValuesStatus(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("123"))
-
 			},
 		},
 		{
@@ -921,7 +918,6 @@ func TestTagServiceImpl_UpdateTagStatus(t *testing.T) {
 				})
 				tagRepo.EXPECT().UpdateTagKeysStatus(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				tagRepo.EXPECT().UpdateTagValuesStatus(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-
 			},
 		},
 	}

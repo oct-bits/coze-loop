@@ -953,8 +953,6 @@ func (e *ExptResultBuilder) buildEvaluatorResult(ctx context.Context) error {
 		} else {
 			if _, ok := turnResultID2ScoreCorrected[turnResultID]; !ok {
 				turnResultID2ScoreCorrected[turnResultID] = false
-			} else {
-				turnResultID2ScoreCorrected[turnResultID] = turnResultID2ScoreCorrected[turnResultID]
 			}
 		}
 	}
@@ -1368,7 +1366,10 @@ func (e ExptResultServiceImpl) UpsertExptTurnResultFilter(ctx context.Context, s
 	if err != nil {
 		return err
 	}
-	err = e.exptTurnResultFilterRepo.Save(ctx, exptTurnResultFilters)
+
+	if err = e.exptTurnResultFilterRepo.Save(ctx, exptTurnResultFilters); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -1672,7 +1673,8 @@ func (e ExptResultServiceImpl) createTurnKeyMaps(itemResults []*entity.ItemResul
 
 func (e ExptResultServiceImpl) compareTurnResultFilter(ctx context.Context, turnKey string, exptTurnResultFilter *entity.ExptTurnResultFilterEntity,
 	turnKey2TurnResult map[string]*entity.TurnResult, turnKey2ItemIdx map[string]int64, turnKey2ItemRunState map[string]entity.ItemRunState,
-	evaluatorVersionID2Key map[string]string) (bool, bool, bool) {
+	evaluatorVersionID2Key map[string]string,
+) (bool, bool, bool) {
 	diffExist := false
 	evaluatorScoreDiff := false
 	actualOutputDiff := false

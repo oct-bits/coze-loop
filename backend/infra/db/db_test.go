@@ -23,7 +23,7 @@ func TestDBWithMaster(t *testing.T) {
 	// configure dbresolver
 	main := db.(*provider).db
 	replica := replicaDB.(*provider).db
-	main.Use(dbresolver.Register(dbresolver.Config{
+	_ = main.Use(dbresolver.Register(dbresolver.Config{
 		Sources:  []gorm.Dialector{main.Dialector},
 		Replicas: []gorm.Dialector{replica.Dialector},
 	}))
@@ -113,7 +113,7 @@ func TestDBDebug(t *testing.T) {
 	db, err := newInMemDB()
 	require.NoError(t, err)
 	db.start()
-	t.Cleanup(func() { db.close() })
+	t.Cleanup(func() { _ = db.close() })
 
 	w := &mockLogWriter{}
 	l := logger.New(w, logger.Config{LogLevel: logger.Silent})

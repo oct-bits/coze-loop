@@ -1148,7 +1148,6 @@ func TestExptResultServiceImpl_MGetExperimentResult(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestExptResultServiceImpl_RecordItemRunLogs(t *testing.T) {
@@ -2040,7 +2039,6 @@ func TestExptResultServiceImpl_UpsertExptTurnResultFilter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			tt.setup()
 
 			// 此处原代码调用 NewExptResultService 时部分参数为 nil，实际项目中需根据情况补充

@@ -63,7 +63,7 @@ func NewExperimentApplication(
 	manager service.IExptManager,
 	scheduler service.ExptSchedulerEvent,
 	recordEval service.ExptItemEvalEvent,
-// tupleSvc service.IExptTupleService,
+	// tupleSvc service.IExptTupleService,
 	idgen idgen.IIDGenerator,
 	configer component.IConfiger,
 	auth rpc.IAuthProvider,
@@ -598,7 +598,7 @@ func (e *experimentApplication) BatchGetExperimentAggrResult_(ctx context.Contex
 	if err != nil {
 		return nil, err
 	}
-	aggrResults, err := e.ExptAggrResultService.BatchGetExptAggrResultByExperimentIDs(ctx, req.WorkspaceID, req.ExperimentIds)
+	aggrResults, err := e.BatchGetExptAggrResultByExperimentIDs(ctx, req.WorkspaceID, req.ExperimentIds)
 	if err != nil {
 		return nil, err
 	}

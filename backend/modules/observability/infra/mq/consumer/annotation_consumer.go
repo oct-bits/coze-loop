@@ -5,7 +5,6 @@ package consumer
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/coze-dev/coze-loop/backend/infra/mq"
@@ -33,11 +32,8 @@ func newAnnotationConsumer(handler obapp.IAnnotationQueueConsumer, loader conf.I
 func (e *AnnotationConsumer) ConsumerCfg(ctx context.Context) (*mq.ConsumerConfig, error) {
 	const key = "annotation_mq_consumer_config"
 	cfg := &config.MqConsumerCfg{}
-	if err := e.IConfigLoader.UnmarshalKey(ctx, key, cfg); err != nil {
+	if err := e.UnmarshalKey(ctx, key, cfg); err != nil {
 		return nil, err
-	}
-	if cfg == nil {
-		return nil, fmt.Errorf("annotation mq consumer config not found")
 	}
 	res := &mq.ConsumerConfig{
 		Addr:                 cfg.Addr,

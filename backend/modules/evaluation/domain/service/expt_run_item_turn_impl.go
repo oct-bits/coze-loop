@@ -219,7 +219,8 @@ func (e *DefaultExptTurnEvaluationImpl) CallEvaluators(ctx context.Context, etec
 }
 
 func (e *DefaultExptTurnEvaluationImpl) callEvaluators(ctx context.Context, execEvaluatorVersionIDs []int64, etec *entity.ExptTurnEvalCtx,
-	targetResult *entity.EvalTargetRecord, history []*entity.Message) (map[int64]*entity.EvaluatorRecord, error) {
+	targetResult *entity.EvalTargetRecord, history []*entity.Message,
+) (map[int64]*entity.EvaluatorRecord, error) {
 	logs.CtxInfo(ctx, "[ExptTurnEval] call evaluators, etec: %v", etec)
 	logs.CtxInfo(ctx, "[ExptTurnEval] call evaluators, target_result: %v", json.Jsonify(targetResult))
 	var (

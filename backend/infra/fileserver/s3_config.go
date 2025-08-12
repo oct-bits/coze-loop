@@ -4,8 +4,9 @@
 package fileserver
 
 import (
-	"github.com/bytedance/gg/gptr"
 	"time"
+
+	"github.com/bytedance/gg/gptr"
 
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pkg/errors"

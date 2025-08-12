@@ -4,8 +4,9 @@
 package conf
 
 import (
-	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/domain/prompt"
 	"context"
+
+	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/domain/prompt"
 )
 
 //go:generate mockgen -destination=mocks/config_provider.go -package=mocks . IConfigProvider

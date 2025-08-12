@@ -41,9 +41,9 @@ type GetPromptParam struct {
 type ListPromptParam struct {
 	SpaceID int64
 
-	KeyWord    string
-	CreatedBys []string
-	UserID     string
+	KeyWord       string
+	CreatedBys    []string
+	UserID        string
 	CommittedOnly bool
 
 	PageNum  int

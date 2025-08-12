@@ -389,7 +389,7 @@ func (e *ExptSchedulerImpl) handleZombies(ctx context.Context, event *entity.Exp
 	zombieSecond := e.Configer.GetConsumerConf(ctx).GetExptExecConf(event.SpaceID).GetExptItemEvalConf().GetZombieSecond()
 	for _, item := range items {
 		if item.State == entity.ItemRunState_Processing && item.UpdatedAt != nil && !gptr.Indirect(item.UpdatedAt).IsZero() {
-			if time.Now().Sub(gptr.Indirect(item.UpdatedAt)).Seconds() > float64(zombieSecond) {
+			if time.Since(gptr.Indirect(item.UpdatedAt)).Seconds() > float64(zombieSecond) {
 				zombies = append(zombies, item.SetState(entity.ItemRunState_Fail))
 			} else {
 				alives = append(alives, item)
