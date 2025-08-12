@@ -37,9 +37,9 @@ evaluator_record_correction_rmq:
   consume_timeout: 10m
 expt_turn_result_filter_rmq:
   addr: 'cozeloop-namesrv:9876'
-  topic: 'stone_cozeloop_evaluation_expt_turn_result_filter'
-  consumer_group: 'stone_cozeloop_evaluation_expt_turn_result_filter_cg'
-  producer_group: 'stone_cozeloop_evaluation_expt_turn_result_filter_pg'
+  topic: 'cozeloop_evaluation_expt_turn_result_filter'
+  consumer_group: 'cozeloop_evaluation_expt_turn_result_filter_cg'
+  producer_group: 'cozeloop_evaluation_expt_turn_result_filter_pg'
   consume_timeout: 10m
 
 rate_limiter_conf:

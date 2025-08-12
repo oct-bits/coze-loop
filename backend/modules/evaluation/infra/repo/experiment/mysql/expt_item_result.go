@@ -191,6 +191,7 @@ func (dao *exptItemResultDAOImpl) ScanItemResults(ctx context.Context, exptID, c
 }
 
 func (dao *exptItemResultDAOImpl) ListItemResultsByExptID(ctx context.Context, exptID, spaceID int64, page entity.Page, desc bool) ([]*model.ExptItemResult, int64, error) {
+
 	db := dao.provider.NewSession(ctx)
 	q := query.Use(db).ExptItemResult
 	conds := []gen.Condition{
