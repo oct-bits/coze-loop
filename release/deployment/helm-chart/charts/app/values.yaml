@@ -5,7 +5,7 @@ service:
 
 image:
   registry: "docker.io"
-  repository: "coze"
+  repository: "cozedev"
   image: "coze-loop"
   tag: "latest"
   pullPolicy: Always

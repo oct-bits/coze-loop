@@ -15,10 +15,10 @@ image:
 		--progress=plain \
 		--push \
 		-f ./release/image/Dockerfile \
-		-t compose-cn-beijing.cr.volces.com/coze/coze-loop:latest \
+		-t docker.io/cozedev/coze-loop:latest \
 		.
 
-	docker pull compose-cn-beijing.cr.volces.com/coze/coze-loop:latest
+	docker pull docker.io/cozedev/coze-loop:latest
 
 	docker run --rm coze-loop:latest du -sh /coze-loop/bin
 	docker run --rm coze-loop:latest du -sh /coze-loop/resources
@@ -189,5 +189,5 @@ mini-tunnel:
 
 chart-%:
 	@helm package $(HELM_CHART_DIR) --version $*
-	@helm push $(HELM_RELEASE)-$*.tgz oci://compose-cn-beijing.cr.volces.com/coze
+	@helm push $(HELM_RELEASE)-$*.tgz oci://docker.io/cozedev
 	@rm -f $(HELM_RELEASE)-$*.tgz
