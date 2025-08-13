@@ -1,8 +1,8 @@
+# 基础服务：自定义连接源 & 基础镜像 混用
 ingress:
   host: open.coze-loop.minikube
-  type: vke
-  className: cozeloop-alb
-  instanceName: cozeloop-alb
+  type: nginx
+  className: nginx
 
 custom: &custom
   image:
@@ -22,6 +22,7 @@ custom: &custom
     password: "***"
     database: "***"
 
+# 固定，不要动，用于传递全局变量
 coze-loop-app:
   custom: *custom
 coze-loop-nginx:

@@ -1,3 +1,5 @@
+# 基础服务：全部使用自定义连接源
+
 ingress:
   host: open.coze-loop.minikube
   type: nginx
@@ -42,6 +44,7 @@ custom: &custom
       user: "***"
       password: "***"
 
+# 固定，不要动，用于传递全局变量
 coze-loop-app:
   custom: *custom
 coze-loop-nginx:

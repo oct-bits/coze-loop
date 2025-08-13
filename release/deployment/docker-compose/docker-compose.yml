@@ -7,10 +7,12 @@ services:
     restart: always
     networks:
       - coze-loop-network
+    ports:
+      - "${COZE_LOOP_APP_OPENAPI_PORT}:8888"
     volumes:
       - nginx_data:/coze-loop/resources
       - ./bootstrap/app:/coze-loop/bootstrap
-      - ./model_config.yaml:/coze-loop/conf/model_config.yaml
+      - ./conf:/coze-loop/conf
     depends_on:
       redis:
         condition: service_healthy
@@ -297,14 +299,23 @@ services:
 
 volumes:
   redis_data:
+    name: coze-loop_redis_data
   mysql_data:
+    name: coze-loop_mysql_data
   clickhouse_data:
+    name: coze-loop_clickhouse_data
   minio_data:
+    name: coze-loop_minio_data
   minio_config:
+    name: coze-loop_minio_config
   rmq_namesrv_data:
+    name: coze-loop_rmqnamesrv_data
   rmq_broker_data:
+    name: coze-loop_rocketmq_broker_data
   nginx_data:
+    name: coze-loop_nginx_data
 
 networks:
   coze-loop-network:
+    name: coze-loop-network
     driver: bridge

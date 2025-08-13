@@ -53,12 +53,12 @@ spec:
         - name: bootstrap
           configMap:
             name: {{ include "configmap.name" . }}
-        - name: model-config
+        - name: runtime-config
           configMap:
-            name: "coze-loop-model-configmap"
-            items:
-              - key: model_config.yaml
-                path: model_config.yaml
+            name: "coze-loop-runtime-configmap"
+        - name: locales-config
+          configMap:
+            name: "coze-loop-locales-configmap"
       initContainers:
         {{- if .Values.custom.redis.disabled }}
         - name: wait-for-redis-init
@@ -174,9 +174,11 @@ spec:
             - name: bootstrap
               mountPath: "/coze-loop/bootstrap"
               readOnly: true
-            - name: model-config
-              mountPath: "/coze-loop/conf/model_config.yaml"
-              subPath: "model_config.yaml"
+            - name: runtime-config
+              mountPath: "/coze-loop/conf"
+              readOnly: true
+            - name: locales-config
+              mountPath: "/coze-loop/conf/locales"
               readOnly: true
           env:
             # redis

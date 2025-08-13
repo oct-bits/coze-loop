@@ -1,12 +1,7 @@
-ingress:
-  host: open.coze-loop.minikube
-  type: nginx
-  className: nginx
-
 custom: &custom
   image:
-    registry: "compose-cn-beijing.cr.volces.com"
-    pullSecrets: "coze-loop-image-secret"
+    registry: "docker.io"
+    pullSecrets: "***"
   redis:
     disabled: true
   mysql:
@@ -18,6 +13,7 @@ custom: &custom
   rmq:
     disabled: true
 
+# 固定，不要动，用于传递全局变量
 coze-loop-app:
   custom: *custom
 coze-loop-nginx:

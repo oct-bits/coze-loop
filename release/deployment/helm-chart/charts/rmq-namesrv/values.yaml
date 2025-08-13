@@ -4,10 +4,10 @@ service:
   targetPort: 9876
 
 image:
-  registry: "compose-cn-beijing.cr.volces.com"
+  registry: "docker.io"
   repository: "apache"
   image: "rocketmq"
-  tag: "latest"
+  tag: "5.3.3"
   pullPolicy: IfNotPresent
   pullSecrets: "coze-loop-image-secret"
 

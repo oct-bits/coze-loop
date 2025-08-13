@@ -4,10 +4,10 @@ service:
   targetPort: 6379
 
 image:
-  registry: "compose-cn-beijing.cr.volces.com"
+  registry: "docker.io"
   repository: "library"
   image: "redis"
-  tag: "latest"
+  tag: "8.2.0"
   pullPolicy: IfNotPresent
   pullSecrets: "coze-loop-image-secret"
 
