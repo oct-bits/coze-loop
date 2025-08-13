@@ -22,6 +22,7 @@ custom: &custom
     password: "***"
     database: "***"
 
+# 固定，不要动，用于传递全局变量
 coze-loop-app:
   custom: *custom
 coze-loop-nginx:
