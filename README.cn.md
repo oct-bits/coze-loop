@@ -78,13 +78,10 @@ Coze Loop 通过提供全生命周期的管理能力，帮助开发者更高效�
    ```Bash
    # 拉取 Helm Chart 包
    helm pull oci://docker.io/cozedev/coze-loop --version 1.0.0-helm
-   
    # 解压
    tar -zxvf coze-loop-1.0.0-helm.tgz
-   
    # 删除压缩包
    rm -f coze-loop-1.0.0-helm.tgz
-   
    # 进入 Helm Chart 目录
    cd coze-loop
    ```
