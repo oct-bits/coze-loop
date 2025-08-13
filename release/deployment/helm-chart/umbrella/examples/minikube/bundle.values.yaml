@@ -8,7 +8,6 @@ ingress:
 custom: &custom
   image:
     registry: "docker.io"
-    pullSecrets: "coze-loop-image-secret"
   redis:
     disabled: true
   mysql:

@@ -27,6 +27,13 @@ helm%:
 		  --install --force $(HELM_RELEASE) $(HELM_CHART_DIR) \
 		  --namespace $(HELM_NAMESPACE) --create-namespace \
 		  -f $(HELM_CHART_DIR)/values.yaml ;; \
+	  -up-exp-minikube-*) \
+		vals="$*"; \
+		vals="$${vals#-up-exp-minikube-}"; \
+		helm upgrade \
+		  --install --force $(HELM_RELEASE) $(HELM_CHART_DIR) \
+		  --namespace $(HELM_NAMESPACE) --create-namespace \
+		  -f $(HELM_CHART_DIR)/examples/minikube/"$$vals".values.yaml ;; \
 	  -down) \
 	    helm list -n $(HELM_NAMESPACE) -q \
 	    | \
@@ -63,6 +70,7 @@ helm%:
 	  	echo; \
 	  	echo "  # Release lifecycle (chart dir: $(HELM_CHART_DIR), release: $(HELM_RELEASE))"; \
 	  	echo "  make helm-up                     # helm upgrade --install from $(HELM_CHART_DIR) using values.yaml"; \
+		echo "  make helm-up-exp-minikube-<vals> # helm upgrade using examples/minikube/<vals>.values.yaml"; \
 	  	echo "  make helm-down                   # Uninstall ALL releases in namespace $(HELM_NAMESPACE)"; \
 	  	echo; \
 	  	echo "  # Logs & templating"; \

@@ -1,12 +1,12 @@
 ingress:
-  host: open.coze-loop.minikube
-  type: nginx
-  className: nginx
+  host: "***"
+  type: "***"
+  className: "***"
 
 custom: &custom
   image:
     registry: "docker.io"
-    pullSecrets: "coze-loop-image-secret"
+    pullSecrets: "***"
   redis:
     disabled: true
   mysql:
