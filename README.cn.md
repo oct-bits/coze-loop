@@ -56,7 +56,7 @@ Coze Loop 通过提供全生命周期的管理能力，帮助开发者更高效�
    ```
 2. 配置模型。
    1. 进入 `coze-loop` 目录
-   2. 编辑文件 `release/deployment/docker-compose/model_config.yaml`
+   2. 编辑文件 `release/deployment/docker-compose/conf/model_config.yaml`
    3. 修改 api_key 和 model 字段。以火山方舟为例：
       - api_key：火山方舟 API Key，获取方式可参考[获取 API Key](Keyhttps://www.volcengine.com/docs/82379/1541594)。
       - model：火山方舟模型接入点的 Endpoint ID，获取方式可参考[获取 Endpoint](https://www.volcengine.com/docs/82379/1099522)。
@@ -77,36 +77,42 @@ Coze Loop 通过提供全生命周期的管理能力，帮助开发者更高效�
 1. 获取 Helm Chart 包。执行一下命令。
    ```Bash
    # 拉取 Helm Chart 包
-   helm pull oci://registry-1.docker.io/coze-dev/coze-loop --version 1.0.0
+   helm pull oci://docker.io/cozedev/coze-loop --version 1.0.0-helm
    
    # 解压
-   tar -zxvf coze-loop-1.0.0.tgz
+   tar -zxvf coze-loop-1.0.0-helm.tgz
    
    # 删除压缩包
-   rm -f coze-loop-1.0.0.tgz
+   rm -f coze-loop-1.0.0-helm.tgz
    
    # 进入 Helm Chart 目录
    cd coze-loop
    ```
 2. 配置模型。
    1. 进入 `coze-loop` 目录
-   2. 编辑文件 `model_config.yaml`
+   2. 编辑文件 `conf/model_config.yaml`
    3. 修改 api_key 和 model 字段。以火山方舟为例：
       - api_key：火山方舟 API Key，获取方式可参考[获取 API Key](Keyhttps://www.volcengine.com/docs/82379/1541594)。
       - model：火山方舟模型接入点的 Endpoint ID，获取方式可参考[获取 Endpoint](https://www.volcengine.com/docs/82379/1099522)。
-3. 启动服务。执行以下命令，使用 Helm 快速部署 Coze Loop 开源版。
+
+3. 配置 Ingress。
+根据您自己的 Kubernetes 集群的 Ingress 配置(class, instance, host, ip分配等)，修改或定制 `templates/ingress.yaml` 文件。
+> 这里提供的 `ingress.yaml` 是一个可在 Minikube 中运行的示例
+
+4. 启动服务。执行以下命令，使用 Helm 快速部署 Coze Loop 开源版。
    ```shell
-   # 部署
+   # 部署，如果运行我们为您准备的 Minikube 示例，则执行 make helm-up-exp-minikube-bundle
    make helm-up # 在 coze-loop/目录下执行
    # 等待服务部署完成
    make helm-pod # 查看集群pod状态
    # nginx最终启动成功表示一切就绪
    make helm-log-<svc-name> # 查看服务启动日志，svc-name: app, nginx, redis, mysql, clickhouse, minio, rmq-namesrv, rmq-broker
    ```
-4. 通过浏览器访问 Coze Loop 开源版 `http://open.coze-loop.minikube`。
+5. 通过浏览器访问 Coze Loop 开源版(使用您的集群为您分配的域名以及URL)
+> 如果您运行的是我们的 Minikube 示例，则浏览器访问 `http://open.coze-loop.minikube`。
 
-定制：
-- 参考 `examples/minikube/` 目录下的三种配置示例
+进一步定制：
+- 参考 `examples/` 目录下的示例
 - 将定制结果覆盖到 `values.yaml` 即可
   - 其中域名 `open.coze-loop.minikube` 也可定制
 
