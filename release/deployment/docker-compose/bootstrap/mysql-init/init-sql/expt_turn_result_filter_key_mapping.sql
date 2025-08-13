@@ -1,4 +1,4 @@
-CREATE TABLE `expt_turn_result_filter_key_mapping`
+CREATE TABLE IF NOT EXISTS `expt_turn_result_filter_key_mapping`
 (
     `id`         bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
     `space_id`   bigint                                  NOT NULL COMMENT '空间id',
