@@ -10,7 +10,7 @@ services:
     volumes:
       - nginx_data:/coze-loop/resources
       - ./bootstrap/app:/coze-loop/bootstrap
-      - ./model_config.yaml:/coze-loop/conf/model_config.yaml
+      - ./conf:/coze-loop/conf
     depends_on:
       redis:
         condition: service_healthy

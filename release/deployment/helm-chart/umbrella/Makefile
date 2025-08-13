@@ -7,10 +7,6 @@ FORCE:
 
 helm%:
 	@case "$*" in \
-	  -chart) \
-	    helm dependency build $(HELM_CHART_DIR) ;; \
-	  -chart-clean) \
-		rm -rf $(HELM_CHART_DIR)/charts $(HELM_CHART_DIR)/Chart.lock ;; \
 	  -ctx) \
 	    kubectl config get-contexts ;; \
 	  -ctx-*) \
@@ -52,35 +48,36 @@ helm%:
       	  --namespace $(HELM_NAMESPACE) \
       	  -f $(HELM_CHART_DIR)/values.yaml | \
       	APP="$$app" yq eval '. | select(.kind == "Deployment" and .metadata.name == ("coze-loop-" + strenv(APP)))' - ;; \
-	  --help|*) \
-       	echo "Usage:"; \
-       	echo "  make helm-chart           # build chart dependencies (helm dependency build)"; \
-       	echo "  make helm-chart-clean     # remove chart dependencies"; \
-       	echo "  make helm-ctx             # list all kubectl contexts"; \
-       	echo "  make helm-ctx-<context>   # switch to a specific kubectl context"; \
-       	echo "  make helm-ns              # list all namespaces"; \
-       	echo "  make helm-pod             # list all pods in namespace $(HELM_NAMESPACE)"; \
-       	echo "  make helm-svc             # list all services in namespace $(HELM_NAMESPACE)"; \
-       	echo "  make helm-ingress         # list all ingress resources in namespace $(HELM_NAMESPACE)"; \
-       	echo "  make helm-up              # upgrade/install release $(HELM_RELEASE) from chart"; \
-       	echo "  make helm-down            # uninstall all releases in namespace $(HELM_NAMESPACE)"; \
-       	echo "  make helm-logf-<app>      # follow logs of all containers in pods with app=$(HELM_RELEASE)-<app>"; \
-       	echo "  make helm-tpl-<app>       # render Deployment manifest of coze-loop-<app> locally"; \
-       	echo; \
-       	echo "Notes:"; \
-       	echo "  - Ensure $(HELM_NAMESPACE) and $(HELM_RELEASE) are set before running commands."; \
-       	echo "  - Commands with '-<name>' suffix accept a dynamic argument (e.g., helm-ctx-xxx, helm-logf-app)."; \
-       	echo "  - '-tpl-*' renders manifests without applying them to the cluster."; \
-       	exit 1 ;; \
+	  -help|*) \
+	  	echo "Usage:"; \
+	  	echo; \
+	  	echo "  # Kube context & namespaces"; \
+	  	echo "  make helm-ctx                    # List kube contexts"; \
+	  	echo "  make helm-ctx-<context>          # Switch to kube context <context>"; \
+	  	echo "  make helm-ns                     # List namespaces"; \
+	  	echo; \
+	  	echo "  # Inspect resources in namespace $(HELM_NAMESPACE)"; \
+	  	echo "  make helm-pod                    # List pods"; \
+	  	echo "  make helm-svc                    # List services (wide)"; \
+	  	echo "  make helm-ingress                # List ingress resources"; \
+	  	echo; \
+	  	echo "  # Release lifecycle (chart dir: $(HELM_CHART_DIR), release: $(HELM_RELEASE))"; \
+	  	echo "  make helm-up                     # helm upgrade --install from $(HELM_CHART_DIR) using values.yaml"; \
+	  	echo "  make helm-down                   # Uninstall ALL releases in namespace $(HELM_NAMESPACE)"; \
+	  	echo; \
+	  	echo "  # Logs & templating"; \
+	  	echo "  make helm-logf-<app>             # Follow logs of pods with label app=$(HELM_RELEASE)-<app>, all containers"; \
+	  	echo "  make helm-tpl-<app>              # Render Deployment named coze-loop-<app> (no apply)"; \
+	  	echo; \
+	  	echo "Examples:"; \
+	  	echo "  make helm-ctx && make helm-ctx-minikube"; \
+	  	echo "  make helm-up      # install/update $(HELM_RELEASE) in $(HELM_NAMESPACE)"; \
+	  	echo "  make helm-logf-api   # follows pods labeled app=$(HELM_RELEASE)-api"; \
+	  	echo "  make helm-tpl-api    # prints Deployment coze-loop-api YAML"; \
+	  	echo; \
+	  	echo "Notes:"; \
+	  	echo "  - Ensure HELM_NAMESPACE and HELM_RELEASE are set before running commands."; \
+	  	echo "  - Commands with '-<name>' suffix accept a dynamic argument (e.g., helm-ctx-xxx, helm-logf-xxx)."; \
+	  	echo "  - '-tpl-*' renders manifests locally without applying to the cluster."; \
+	  	exit 1 ;; \
 	esac
-
-mini-start:
-	minikube start --addons=ingress
-
-mini-tunnel:
-	minikube tunnel
-
-chart-%:
-	@helm package $(HELM_CHART_DIR) --version $*
-	@helm push $(HELM_RELEASE)-$*.tgz oci://compose-cn-beijing.cr.volces.com/coze
-	@rm -f $(HELM_RELEASE)-$*.tgz
