@@ -1,5 +1,6 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
+/* eslint-disable arrow-body-style */
 /* eslint-disable security/detect-object-injection */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { uniqueId } from 'lodash-es';
@@ -114,10 +115,6 @@ export const getMockVariables = (
   variables: VariableDef[],
   mockVariables: VariableVal[],
 ) => {
-  const map = new Map();
-  variables.forEach((item, index) => {
-    map.set(item.key, index);
-  });
   return variables.map(item => {
     const mockVariable = mockVariables.find(it => it.key === item.key);
     return {
