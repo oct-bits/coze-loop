@@ -6,6 +6,7 @@ package service
 import (
 	"context"
 	"io"
+	"os"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
@@ -250,6 +251,10 @@ func TestRuntimeImpl_Generate(t *testing.T) {
 }
 
 func TestRuntimeImpl_HandleMsgsPreCallModel(t *testing.T) {
+	_ = os.Setenv("COZE_LOOP_OSS_PROTOCOL", "http")
+	_ = os.Setenv("COZE_LOOP_OSS_DOMAIN", "cozeloop-minio")
+	_ = os.Setenv("COZE_LOOP_OSS_PORT", "19000")
+
 	type fields struct {
 		llmFact     llmfactory.IFactory
 		idGen       idgen.IIDGenerator
