@@ -3,7 +3,7 @@
 <div align="center">
 <a href="#what-can-coze-loop-do">Coze Loop</a> •
 <a href="#feature-list">Feature list</a> •
-<a href="#quickstart">Quick start</a> •
+<a href="#quick-start">Quick start</a> •
 <a href="#developer-guide">Developer guide</a>
 </p>
 <p>
@@ -46,10 +46,10 @@ Procedure:
 1. Clone the source code.
    Run the following command to obtain the latest version of the Coze Loop source code.
    ```Bash
-   Clone the code
+   # Clone the code
    git clone https://github.com/coze-dev/coze-loop.git
    
-   Enter the coze-loop directory
+   # Enter the coze-loop directory
    cd coze-loop 
    ```
 
@@ -62,8 +62,8 @@ Procedure:
 3. Start the service.
    Run the following commands to quickly deploy the open-source version of Coze Loop using Docker Compose.
    ```Bash
-   Start the service (default: development mode)
-   Run in the coze-loop/ directory
+   # Start the service (default: development mode)
+   # Run in the coze-loop/ directory
    make compose-up 
    ```
 
@@ -93,7 +93,7 @@ Procedure:
    ```Bash
    # Run in the coze-loop/ directory
    make helm-up
-   After the service deployment is complete, check the status of the cluster pods
+   # After the service deployment is complete, check the status of the cluster pods
    make helm-pod
    # Check the service startup logs. If both the app and nginx are running normally, the deployment is successful
    make helm-logf-app
@@ -112,7 +112,7 @@ Procedure:
 * [Trace reporting and query](https://loop.coze.cn/open/docs/cozeloop/trace_integrate): Coze Loop supports automatic reporting of traces from prompt debugging sessions created on the platform, enabling real-time tracking of each trace.
 * [Open-source Edition usage of the Coze Loop SDK](https://github.com/coze-dev/coze-loop/wiki/8.-Open-source-edition-uses-CozeLoop-SDK): The Coze Loop SDK in three languages is suitable for both commercial and open-source editions. For the Open-source Edition, developers only need to modify some parameter configurations during initialization.
 
-## Development guides
+## Developer guide
 
 * [System architecture](https://github.com/coze-dev/coze-loop/wiki/3.-Architecture): Learn about the technical architecture and core components of Coze Loop Open-source Edition.
 * [Startup mode](https://github.com/coze-dev/coze-loop/wiki/4.-Service-startup-modes): When installing and deploying Coze Loop Open-source Edition, the default development mode allows backend file modifications without requiring service redeployment.
