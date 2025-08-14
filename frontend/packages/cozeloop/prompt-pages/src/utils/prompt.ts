@@ -86,21 +86,22 @@ export const getInputVariablesFromPrompt = (messageList: Message[]) => {
 
   const result = Array.from(resultSet);
 
-  const placeholderArray = messageList.filter(
-    it => it.role === Role.Placeholder,
-  );
   const array: VariableDef[] = result.map(key => ({
     key,
     type: VariableType.String,
   }));
 
-  const placeholderContentArray: VariableDef[] = placeholderArray
-    ?.filter(it => {
-      const key = it?.content?.replace('{{', '')?.replace('}}', '');
-      return result.every(k => k !== key);
-    })
-    ?.map(it => ({
-      key: it?.content?.replace('{{', '')?.replace('}}', ''),
+  const placeholderArray = messageList.filter(
+    it => it.role === Role.Placeholder,
+  );
+  const placeholderKeys = placeholderArray.map(it => it?.content);
+  const placeholderKeysSet = new Set(placeholderKeys);
+  const placeholderKeysArray = Array.from(placeholderKeysSet);
+
+  const placeholderContentArray: VariableDef[] = placeholderKeysArray
+    ?.filter(key => key && result.every(k => k !== key))
+    ?.map(key => ({
+      key,
       type: VariableType.Placeholder,
     }));
 
