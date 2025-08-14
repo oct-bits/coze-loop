@@ -29,6 +29,8 @@ func (ExptStatsConverter) DO2PO(stats *entity.ExptStats) *model.ExptStats {
 		CreditCost:      stats.CreditCost,
 		InputTokenCost:  gptr.Of(stats.InputTokenCost),
 		OutputTokenCost: gptr.Of(stats.OutputTokenCost),
+		CreatedAt:       stats.CreatedAt,
+		UpdatedAt:       stats.UpdatedAt,
 	}
 }
 
@@ -45,5 +47,7 @@ func (ExptStatsConverter) PO2DO(stats *model.ExptStats) *entity.ExptStats {
 		CreditCost:        stats.CreditCost,
 		InputTokenCost:    gptr.Indirect(stats.InputTokenCost),
 		OutputTokenCost:   gptr.Indirect(stats.OutputTokenCost),
+		CreatedAt:         stats.CreatedAt,
+		UpdatedAt:         stats.UpdatedAt,
 	}
 }

@@ -80,7 +80,7 @@ compose%:
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-dev.yml \
 	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
 	      --profile "*" \
-	      up --build --wait ;; \
+	      up --build  ;; \
 	  -restart-dev-*) \
 		svc="$*"; \
 		svc="$${svc#-restart-dev-}"; \
@@ -109,7 +109,7 @@ compose%:
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-debug.yml \
 	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
 	      --profile "*" \
-	      up --build --wait ;; \
+	      up --build  ;; \
 	  -restart-debug-*) \
 		svc="$*"; \
 		svc="$${svc#-restart-debug-}"; \

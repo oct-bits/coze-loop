@@ -184,6 +184,8 @@ type ExptStats struct {
 	CreditCost        float64
 	InputTokenCost    int64
 	OutputTokenCost   int64
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 type ExptTurnResult struct {
