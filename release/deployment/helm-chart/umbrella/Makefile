@@ -89,3 +89,26 @@ helm%:
 	  	echo "  - '-tpl-*' renders manifests locally without applying to the cluster."; \
 	  	exit 1 ;; \
 	esac
+
+minikube%:
+	@case "$*" in \
+	  -start) \
+		minikube start --addons=ingress ;; \
+	  -tunnel) \
+		sudo minikube tunnel ;; \
+	  -help|*) \
+	  	echo "Usage:"; \
+	  	echo; \
+	  	echo "  make minikube-start       # Start minikube with ingress addon enabled"; \
+	  	echo "  make minikube-tunnel      # Run minikube tunnel (requires sudo), exposes LoadBalancer/Ingress services locally"; \
+	  	echo; \
+	  	echo "Examples:"; \
+	  	echo "  make minikube-start"; \
+	  	echo "  make minikube-tunnel"; \
+	  	echo; \
+	  	echo "Notes:"; \
+	  	echo "  - 'minikube-start' uses '--addons=ingress' to enable NGINX ingress controller automatically."; \
+	  	echo "  - 'minikube-tunnel' will bind service external IPs to localhost for LoadBalancer/Ingress access."; \
+	  	echo "  - 'minikube-tunnel' may require admin privileges (sudo) depending on your OS/network setup."; \
+	  	exit 1 ;; \
+	esac
