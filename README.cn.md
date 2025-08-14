@@ -55,8 +55,8 @@ Coze Loop 通过提供全生命周期的管理能力，帮助开发者更高效�
    1. 进入 `coze-loop` 目录。
    2. 编辑文件 `release/deployment/docker-compose/conf/model_config.yaml`。
    3. 修改 api_key 和 model 字段。以火山方舟为例：
-      1. api_key：火山方舟 API Key。中国境内用户参考[火山方舟文档](https://www.volcengine.com/docs/82379/1541594)；非中国境内的用户可参考[BytePlus ModelArk 文档](https://docs.byteplus.com/en/docs/ModelArk/1361424?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source)。
-      2. model：火山方舟模型接入点的 Endpoint ID。中国境内用户参考参考[火山方舟文档](https://www.volcengine.com/docs/82379/1099522)；非中国境内的用户可参考[BytePlus ModelArk 文档](https://docs.byteplus.com/en/docs/ModelArk/1099522?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source)。
+      * api_key：火山方舟 API Key。中国境内用户参考[火山方舟文档](https://www.volcengine.com/docs/82379/1541594)；非中国境内的用户可参考[BytePlus ModelArk 文档](https://docs.byteplus.com/en/docs/ModelArk/1361424?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source)。
+      * model：火山方舟模型接入点的 Endpoint ID。中国境内用户参考参考[火山方舟文档](https://www.volcengine.com/docs/82379/1099522)；非中国境内的用户可参考[BytePlus ModelArk 文档](https://docs.byteplus.com/en/docs/ModelArk/1099522?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source)。
 3. 启动服务。
    执行以下命令，使用 Docker Compose 快速部署 Coze Loop 开源版。
    ```Bash
@@ -82,8 +82,8 @@ Coze Loop 通过提供全生命周期的管理能力，帮助开发者更高效�
 
 2. 配置模型。
    进入 `coze-loop` 目录，编辑文件 `release/deployment/docker-compose/conf/model_config.yaml`。配置以下字段，此处以火山方舟为例：
-   1. **api_key**：火山方舟 API Key。中国境内用户参考[火山方舟文档](https://www.volcengine.com/docs/82379/1541594)；非中国境内的用户可参考[BytePlus ModelArk 文档](https://docs.byteplus.com/en/docs/ModelArk/1361424?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source)。
-   2. **model**：火山方舟模型接入点的 Endpoint ID。中国境内用户参考参考[火山方舟文档](https://www.volcengine.com/docs/82379/1099522)；非中国境内的用户可参考[BytePlus ModelArk 文档](https://docs.byteplus.com/en/docs/ModelArk/1099522?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source)。
+   * api_key：火山方舟 API Key。中国境内用户参考[火山方舟文档](https://www.volcengine.com/docs/82379/1541594)；非中国境内的用户可参考[BytePlus ModelArk 文档](https://docs.byteplus.com/en/docs/ModelArk/1361424?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source)。
+   * model：火山方舟模型接入点的 Endpoint ID。中国境内用户参考参考[火山方舟文档](https://www.volcengine.com/docs/82379/1099522)；非中国境内的用户可参考[BytePlus ModelArk 文档](https://docs.byteplus.com/en/docs/ModelArk/1099522?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source)。
 3. 配置 Ingress 规则。
    Ingress 用于暴露服务到外部，需根据集群实际情况配置项目目录下的`templates/ingress.yaml` 文件，自行修改 ingressClassName 等参数，配置 class、instance、host、ip 分配等要素。
 4. 部署并启动服务。
