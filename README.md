@@ -121,29 +121,38 @@ Procedure:
 * [Fault troubleshooting](https://github.com/coze-dev/coze-loop/wiki/7.-Troubleshooting): Learn how to check container status and system logs.
 
 ## License
-This project is licensed under the Apache 2.0 License. For details, please refer to the [LICENSE](LICENSE) file.
-## Community contributions
-We welcome community contributions. Please refer to [CONTRIBUTING](CONTRIBUTING.md) and [Code of conduct](CODE_OF_CONDUCT.md). We look forward to your contributions!
-## Security and privacy
-If you discover or believe you may have discovered a potential security issue in this project, please notify the ByteDance security team through our [Security Center](https://security.bytedance.com/src) or [Vulnerability Report Email](sec@bytedance.com).
-Please **do not** create a public GitHub Issue.
-## Join the community
-We are committed to building an open and friendly developer community, and we welcome all developers interested in AI Agent development to join us!
-### Feedback and feature suggestions
-In order to track and resolve issues more efficiently, ensure information transparency, and facilitate collaboration, we recommend participating in the following ways:
 
-* **GitHub Issues**: [Submit bug reports or feature requests](https://github.com/coze-dev/coze-loop/issues)
-* **Pull Requests**: [Contribute code or documentation improvements](https://github.com/coze-dev/coze-loop/pulls)
+This project uses the Apache 2.0 license. For more details, please refer to the [LICENSE](LICENSE) file.
 
-### Technical exchanges and discussions
-Join our technical exchange group to share experiences with other developers and get the latest project updates:
+## Community Contributions
 
-* Lark group chat: Scan the QR code below with the Lark mobile app to join the Coze Loop technical exchange group.
+We welcome community contributions. For contribution guidelines, please refer to [CONTRIBUTING](CONTRIBUTING.md) and [Code of conduct](CODE_OF_CONDUCT.md). We look forward to your contributions!
+
+## Security and Privacy
+
+If you identify potential security issues in this project or believe you may have found one, please notify Bytedance's security team via our [Security Center](https://security.bytedance.com/src) or [Vulnerability Report Email](sec@bytedance.com).
+
+Please **do not** create public GitHub Issues.
+
+## Join the Community
+
+We are committed to building an open and friendly developer community. All developers interested in AI Agent development are welcome to join us!
+
+### Issue Reports & Feature Requests
+To efficiently track and resolve issues while ensuring transparency and collaboration, we recommend participating through:
+- **GitHub Issues**: [Submit bug reports or feature requests](https://github.com/coze-dev/coze-loop/issues)
+- **Pull Requests**: [Contribute code or documentation improvements](https://github.com/coze-dev/coze-loop/pulls)
+
+### Technical Discussion & Communication
+Join our technical discussion groups to share experiences with other developers and stay updated with the latest project developments:
+
+* Lark Group Chat: Scan the QR code below on the Lark mobile app to join the Coze Loop technical discussion group.
 
 ![Image](https://p9-arcosite.byteimg.com/tos-cn-i-goo7wpa0wc/818dd6ec45d24041873ca101681186c1~tplv-goo7wpa0wc-image.image)
 
-* Discord server: [Coze Community](https://discord.gg/a6YtkysB)
-* Telegram group: [Coze](https://t.me/+pP9CkPnomDA0Mjgx)
+* Discord Server: [Coze Community](https://discord.gg/a6YtkysB)
+
+* Telegram Group: [Coze](https://t.me/+pP9CkPnomDA0Mjgx)
 
 ## Acknowledgments
 Thanks to all developers and community members who contributed to the Coze Loop project Special thanks:
